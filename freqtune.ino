@@ -17,7 +17,7 @@ void freqDiffTune(float fCurr)
 
 	currBand = getBand(fCurr);
 	//return if off or out of band
-	if (currBand == -1 || !lab[freqTune].stat || !hfBand[currBand].tuneFlg)
+	if (currBand == -1 || !lab[freqTune].stat || !hfBand[currBand].isTtune)
 		return;
 
 	//change in radio freq greater than set difference?  Activate tuner
@@ -29,7 +29,7 @@ void freqDiffTune(float fCurr)
 		displayValue(freq, fCurr);
 		displayValue(band, hfBand[currBand].mtrs);
 		displayValue(ref, hfBand[currBand].ref);
-		val[band].updateFlg = true;
+		val[band].isUpdate = true;
 
 		// check if in band
 		if (currBand > -1)
@@ -54,7 +54,7 @@ void freqTuneButton(int tStat)
 		strcpy(lab[freqTune].txt, "F/Tune: ");
 		lab[freqTune].colour = MENU_BG;
 		fr[freqTune].bg = MENU_COLOUR;
-		val[freqTune].updateFlg = true;					// force display
+		val[freqTune].isUpdate = true;					// force display
 		val[tuner].prevValue = getFreq();
 	}
 	if (!lab[freqTune].stat)
@@ -75,7 +75,7 @@ Global: fr[], lab[], val[], setTuner2, FreqTunePrevFreq
 void tunerActivate()
 {
 	// return if disabled
-	if (!fr[tuner].enableFlg)
+	if (!fr[tuner].isEnable)
 		return;
 
 	// change label text, colour while active
@@ -108,13 +108,13 @@ int tunerStatus()								// display Tuner button status.
 {
 	int s;
 
-	if (!fr[tuner].enableFlg)
-		return(-1);		// check enabled?
+	if (!fr[tuner].isEnable)
+		return -1;		// check enabled?
 
 	// get tuner status
 	s = getTunerStat();
 	if (s == lab[tuner].stat)				// lab[tune].stat = 1    always forces status check
-		return(s);							// no change in status
+		return s;							// no change in status
 
 	switch (s)
 	{
@@ -158,7 +158,7 @@ int tunerStatus()								// display Tuner button status.
 	displayLabel(tuner);
 	lab[tuner].stat = s;
 
-	return(s);
+	return s;
 }
 
 /*----------------------------- getTunerStat() -------------------------------------------------
@@ -173,8 +173,8 @@ int getTunerStat()
 	civWrite(civReadTuner);				// request read frequency from radio
 	n = civRead(inBuff);
 	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
-		return (inBuff[6]);				// return tuner status
+		return inBuff[6];				// return tuner status
 	else
-		return (-1);
+		return -1;
 }
 

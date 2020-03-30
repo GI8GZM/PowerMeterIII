@@ -51,9 +51,9 @@ struct frame {
 	int w;						// horizontal width
 	int h;						// vertical height
 	int bg;						// frame background colour
-	bool outLineFlg;			// outline flg / don't display
-	bool touchFlg;				// frame enabled for touch
-	bool enableFlg;				// enable frame & CONTENTS
+	bool isOutLine;			// outline flg / don't display
+	bool isTouch;				// frame enabled for touch
+	bool isEnable;				// enable frame & CONTENTS
 };
 
 frame fr[NUM_FRAMES];
@@ -194,7 +194,7 @@ struct value {
 	int decs;							// decimals
 	int colour;							// text colour
 	ILI9341_t3_font_t  font;			// text font size
-	bool updateFlg;						// true forces update
+	bool isUpdate;						// true forces update
 };
 
 value val[] = {
@@ -262,8 +262,8 @@ struct freqband {
 	float bandStart;					// band start freq
 	float bandEnd;						// band end freq
 	float ref;							// spectrum reference
-	bool tuneFlg;						// enable tuner flag for this band
-	bool aBandFlg;						// enable autoband flag
+	bool isTtune;						// enable tuner flag for this band
+	bool isABand;						// enable autoband flag
 };
 
 freqband hfBand[] = {
@@ -300,8 +300,8 @@ optBox		tb[30];									// tb[] is touch area co-ord
 struct eeProm0
 {
 	float	ref;									// band radio spectrum ref
-	bool	tuneFlg;								// tuner enable flag
-	bool	aBandFlg;								// autoband enable falg
+	bool	isTtune;								// tuner enable flag
+	bool	isABand;								// autoband enable falg
 };
 eeProm0		hfProm[NUM_BANDS];						 // hf bands info
 
@@ -309,7 +309,7 @@ eeProm0		hfProm[NUM_BANDS];						 // hf bands info
 struct param										// param structure definition
 {
 	int		val;									// varaibles value
-	bool	flg;									// variable flag
+	bool	isFlg;									// variable flag
 	int		eeAddr;									// eeProm address
 };
 param		freqTunePar = { 200,	0,	EEADDR_PARAM };					// freqTune parameters

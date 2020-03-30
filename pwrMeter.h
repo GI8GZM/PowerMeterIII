@@ -46,7 +46,7 @@ two sets of factors as detection diodes are no linear at low powers.
 
  /*---------------------------Serial ports -------------------*/
 #define		civSerial   Serial1					    // uses serial1 rx/tx pins 0,1
-bool	    civEnableFlg = true;				    // 0 = Power meter only, 1 = added CI-V
+bool	    isCivEnable = true;				    // 0 = Power meter only, 1 = added CI-V
 #define		btSerial    Serial3					    // bluetooth serial3 - pins 7,8
 
 /*----------Icom CI-V Constants------------------------------*/
@@ -57,22 +57,22 @@ bool	    civEnableFlg = true;				    // 0 = Power meter only, 1 = added CI-V
 #define CIV_READ_DELAY  1						    // CIV read delay to ensure rx buffer fill
 
 /*----------Icom CI-V commands------------------------------*/
-int civPreamble[] = { 0xFE, 0xFE,  CIVRADIO, CIVADDR };			        // write command preamble
-int	civReadFreq[] = { 0x03, 0xFD };								        // read frequency
-int civWriteFreq[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };	    // set frequency
-int civReadTuner[] = { 0x1C, 0x01, 0xFD };							    // read tuner status
-int civWriteTuner[] = { 0x1C, 0x01, 0x02, 0xFD };					    // radio tuner activate
-int civReadRef[] = { 0x27, 0x19, 0x00, 0xFD };						    // read spectrum Reference
-int civWriteRef[] = { 0x27, 0x19, 0x00,0x00,0x00,0x00,0xFD };		    // spectrum Reference
-int	civReadPwrSet[] = { 0x14, 0x0A, 0xFD };						        // read RF Power setting
-int	civWritePwrSet[] = { 0x14, 0x0A, 0x00, 0x00, 0xFD };			    // set RF Power
+int civPreamble[] =     { 0xFE, 0xFE,  CIVRADIO, CIVADDR };			    // write command preamble
+int	civReadFreq[] =     { 0x03, 0xFD };								    // read frequency
+int civWriteFreq[] =    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };	// set frequency
+int civReadTuner[] =    { 0x1C, 0x01, 0xFD };							// read tuner status
+int civWriteTuner[] =   { 0x1C, 0x01, 0x02, 0xFD };					    // radio tuner activate
+int civReadRef[] =      { 0x27, 0x19, 0x00, 0xFD };						// read spectrum Reference
+int civWriteRef[] =     { 0x27, 0x19, 0x00,0x00,0x00,0x00,0xFD };		// spectrum Reference
+int	civReadTxPwr[] =    { 0x14, 0x0A, 0xFD };						    // read RF Power setting
+int	civWriteTxPwr[] =   { 0x14, 0x0A, 0x00, 0x00, 0xFD };			    // set RF Power
 
 /*----------ILI9341 TFT display (320x240)-------------------------*/
 #define     ROTATION 1									// rotation for tft and touchscreen
 #define		TFT_DC 9
 #define		TFT_CS 10								// TFT CS pin
 ILI9341_t3	tft = ILI9341_t3(TFT_CS, TFT_DC);		// define tft device
-bool		dimFlg = false;							// dim flag, false = no dim
+bool		isDim = false;							// dim flag, false = no dim
 #define		DIM_PIN 4								// analog out pin for display LED & dimming
 #define		TFT_BRIGHT 255							// tft display full brightness
 #define		TFT_DIM	10								// tft display dim value
@@ -115,17 +115,34 @@ volatile unsigned int buf0[MAXBUF + 1] = {}, buf1[MAXBUF + 1] = {};  // cylic bu
 IntervalTimer sampleTimer;						    // getADC interupt timer
 
 /*----------Metro timers-----------------------------------------*/
-Metro aBandTimer = Metro(1000);				        // autoband time milliseconds, auto reset
-Metro heartBeatTimer = Metro(250);			        // heartbeat timer
-Metro doubleTouchTimer = Metro(350);		       	// double touch interval
-Metro longTouchTimer = Metro(750);			        // long touch timer
-Metro pkPwrTimer = Metro(3000);				        // peak power hold timer
-Metro pepTimer = Metro(500);				       	// pep hold timer
-Metro civTimeOut = Metro(100);				        // civ read/write watchdog timer
-Metro dimTimer = Metro(15 * 60 * 1000);		        // dimmer timer (mins)
+Metro aBandTimer =      Metro(1000);				// autoband time milliseconds, auto reset
+Metro heartBeatTimer =  Metro(250);			        // heartbeat timer
+Metro longTouchTimer =  Metro(750);			        // long touch timer
+Metro pkPwrTimer =      Metro(3000);			    // peak power hold timer
+Metro pepTimer =        Metro(500);				   	// pep hold timer
+Metro civTimeOut =      Metro(100);				    // civ read/write watchdog timer
+Metro dimTimer =        Metro(15 * 60 * 1000);		// dimmer timer (mins)
+
 
 /*----------pin assigns--------------------------------------*/
 #define		TOGGLE_PIN 5							// high/low pulse output for timing
+
+
+
+
+// constant expression to convert BCD to decimal
+constexpr int getBCD(int n)
+{
+	return n / 16 * 10 + n % 16;
+}
+// constant expression to convert decimal to BCD 
+constexpr int putBCD(int n)
+{
+	return n / 10 * 16 + n % 10;
+}
+
+
+
 
 /*---------- Teensy restart code (long press on Peak Power frame)--------*/
 #define		CPU_RESTART_ADDR (uint32_t *)0xE000ED0C

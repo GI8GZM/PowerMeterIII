@@ -33,6 +33,7 @@
 		005 bluetooth tests
 			code restructing
 			added seperate calculation for fwd & ref
+			constexpr for BCD conversions
 
 	  Versions  II:
 		003 change frame, label structure
@@ -111,7 +112,7 @@
 #include "frames.h"												// varaiables and parameters
 #include "pwrMeter.h"											// PowerMeterII defines, constants & global variables
 
-#define VERSION "PowerMeterIII_v004"							// software version
+#define VERSION "PowerMeterIII_v005"							// software version
 
 /*-------------------------------------------------------------------------------------------------------
   setup() - initialise functions
@@ -151,11 +152,11 @@ void setup()
 
 	//initialise  others
 	samplesAvg = samplesDefPar.val;								// set cyclic buffer default sample size
-	lab[freqTune].stat = freqTunePar.flg;						// freq tune startup status, flag set from options
-	lab[aBand].stat = aBandPar.flg;								// autoband status
+	lab[freqTune].stat = freqTunePar.isFlg;						// freq tune startup status, flag set from options
+	lab[aBand].stat = aBandPar.isFlg;								// autoband status
 
 	if (!(bool)getFreq())										// check if civ not working -
-		civEnableFlg = false;									// disable civMode, display basic mode
+		isCivEnable = false;									// disable civMode, display basic mode
 
 	// display splash screen
 	analogWrite(DIM_PIN, TFT_BRIGHT);							// screen on, full bright
@@ -164,6 +165,7 @@ void setup()
 	// initialise timers
 	aBandTimer.reset();											// autoband timer
 	heartBeatTimer.reset();										// heartbeat reset
+	dimTimer.reset();
 
 	// draw screen etc
 	initDisplay();
@@ -192,7 +194,7 @@ void loop()
 	measure();
 
 	// do following if civMode enabled
-	if (civEnableFlg)
+	if (isCivEnable)
 	{
 		// get and display frequency
 		currFreq = getFreq();
@@ -217,16 +219,13 @@ void loop()
 		autoBand(currFreq);
 
 		// display %TX RF Power
-		//map before display, avoid rounding errors
-		int pwr = getTxPwr();
-		pwr = map(pwr, 0, 255, 0, 100);
-		displayValue(txPwr, pwr);
+		displayTxPwr();
 	}
 
 	// reset dimmer - check if screen has been touched
 	if (ts.tirqTouched())
 	{
-		if (dimFlg)
+		if (isDim)
 			resetDimmer();										// reset dimmer
 		else
 			touchChk(NUM_FRAMES);
@@ -240,7 +239,7 @@ void loop()
 */
 void initDisplay(void)
 {
-	if (!civEnableFlg)										// if civMode disabled
+	if (!isCivEnable)										// if civMode disabled
 	{
 		copyFrame(basicFrame);								// copy basic frame layout
 		val[nettPwr].font = FONT48;							// increase font size
@@ -259,7 +258,7 @@ void initDisplay(void)
 	for (int i = 0; i < NUM_FRAMES; i++)
 	{
 		displayLabel(i);
-		val[i].updateFlg = true;							// force redisplay
+		val[i].isUpdate = true;							// force redisplay
 	}
 
 	// set measurement samples Reg size (averaging)
@@ -306,8 +305,7 @@ reset tft dimmer
 void resetDimmer()
 {
 	// reset dimmer flag
-	ts.touched();											// clear pending touch
-	dimFlg = false;											// reset flag
+	isDim = false;											// reset flag
 	analogWrite(DIM_PIN, TFT_BRIGHT);						// tft full bright
 	dimTimer.reset();										// reset dimmer timer
 }
@@ -317,7 +315,7 @@ tft display dimmer
 */
 void setDimmer()
 {
-	dimFlg = true;
+	isDim = true;
 	analogWrite(DIM_PIN, TFT_DIM);							// tft dim
 }
 
@@ -326,14 +324,18 @@ heartbeat()  - timer,displays pulsing dot top left corner
 */
 void heartBeat()
 {
-	static bool heartBeatFlg;
+	static bool isHeartBeat;
+
 	if (heartBeatTimer.check())								// check Metro timer
 	{
-		if (heartBeatFlg)									// draw circle
+		if (isHeartBeat) {									// draw circle
 			tft.fillCircle(12, 18, 5, FG_COLOUR);
+			heartBeatTimer.reset();
+		}
 		else
 			tft.fillCircle(12, 18, 5, BG_COLOUR);
-		heartBeatFlg = !heartBeatFlg;						// set/reset flag
+
+		isHeartBeat = !isHeartBeat;							// set/reset flag, toggle indiactor on/off
 	}
 }
 
@@ -349,8 +351,8 @@ void copyFrame(frame* fPtr)
 		fr[i].w = fPtr[i].w;
 		fr[i].h = fPtr[i].h;
 		fr[i].bg = fPtr[i].bg;
-		fr[i].outLineFlg = fPtr[i].outLineFlg;
-		fr[i].touchFlg = fPtr[i].touchFlg;
-		fr[i].enableFlg = fPtr[i].enableFlg;
+		fr[i].isOutLine = fPtr[i].isOutLine;
+		fr[i].isTouch = fPtr[i].isTouch;
+		fr[i].isEnable = fPtr[i].isEnable;
 	}
 }

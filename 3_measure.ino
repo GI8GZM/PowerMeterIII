@@ -128,7 +128,7 @@ void measure()
 		if (nPwr > PWR_THRESHOLD)
 		{
 			// display nett power.  if power on, use RED background. runs once if power is on.
-			if (fr[nettPwr].enableFlg && lab[nettPwr].stat)
+			if (fr[nettPwr].isEnable && lab[nettPwr].stat)
 			{	// stat true. used to control change of backgroud colour
 				fr[nettPwr].bg = RED;
 				restoreFrame(nettPwr);
@@ -150,13 +150,13 @@ void measure()
 		// get and display frequency, needed here for swr / frequency manual sweep
 		// this takes 30 mSecs, so only update if SWR meter and freq display is enabled
 		// useful for SWR checking vs Frequency
-		if (fr[swrMeter].enableFlg && fr[freq].enableFlg)
+		if (fr[swrMeter].isEnable && fr[freq].isEnable)
 			displayValue(freq, getFreq());				// read frequency from radio
 
 		// check for screen touch
 		if (ts.tirqTouched())
 		{
-			if (dimFlg)
+			if (isDim)
 				resetDimmer();							// reset dimmer
 			else
 				touchChk(NUM_FRAMES);
@@ -166,7 +166,7 @@ void measure()
 	} while (nPwr >= PWR_THRESHOLD);					// do at least once and while power applied
 
 	// power off - display exit power and reverse label
-	if (fr[nettPwr].enableFlg && !lab[nettPwr].stat)
+	if (fr[nettPwr].isEnable && !lab[nettPwr].stat)
 	{
 		fr[nettPwr].bg = BG_COLOUR;						// change back to background colour
 		restoreFrame(nettPwr);
@@ -202,7 +202,7 @@ float pwrCalc(float v, char direction)						//
 	if (pwr < 0 || !isnormal(pwr) || isnan(pwr))		// check for division by zero and < 0
 		pwr = 0.0;
 
-	return(pwr);										// return power (watts)
+	return pwr;										// return power (watts)
 }
 
 /*----------------------------------- pwrRmsCalc() ----------------------------------------------------
@@ -225,5 +225,5 @@ float pwrRmsCalc(float vRms)
 	// calc power in watts
 	pwr = sq(vRms) / 50;
 
-	return(pwr);
+	return pwr;
 }

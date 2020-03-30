@@ -9,7 +9,7 @@
    Uses XPT2046 interrupts, check for a touch (ts.tirqTouched())
 */
 
-/*------------------------------- testTouched() ------------------------------------------------------------
+/*------------------------------- touched() ------------------------------------------------------------
 check for screen touch
 returns 0 = no touch, 1 = short touch, 2 = long touch
 */
@@ -17,23 +17,22 @@ int touched()
 {
 	int status = 0;
 
-	// empty touch buffer to avoid double touch
-	ts.touched();
-
-	// read point while touched - avoids false touch areas
-	if (!ts.touched())
-		return(0);
-
-	status = 1;										// status = short touch
-
-	// check for long touch
-	longTouchTimer.reset();							// Metro timer
-	while (ts.touched() && status < 2)
+	if (ts.tirqTouched())									// interrup. screen was touched
 	{
-		if (longTouchTimer.check())					// long touch timer
-			status = 2;
+		if (ts.touched())									// +ve touch
+		{
+			status = 1;										// status = short touch
+
+			// check for long touch
+			longTouchTimer.reset();							// Metro timer
+			while (ts.touched() && status < 2)
+			{
+				if (longTouchTimer.check())					// long touch timer
+					status = 2;
+			}
+		}
 	}
-	return(status);
+	return status;
 }
 
 /*-------------------------------- touchChk() -----------------------------------------------------------
@@ -45,7 +44,7 @@ void touchChk(int i)
 	int x = 0, y = 0;							// local variables
 	TS_Point p;									// touch screen result structure
 	int tStatus;								// 0= not touched, 1 = shorttouch, 2 = longtouch,
-	bool touchFlg = false;
+	bool isTouch = false;
 
 	tStatus = 1;								// default short touch. 0= not touched, 1 = shorttouch, 2 = longtouch
 
@@ -67,15 +66,15 @@ void touchChk(int i)
 				&& y > fr[i].y && (y < fr[i].y + fr[i].h))
 			{
 				// touch enabled frame? break on first occurance for similar posn frames
-				if (fr[i].touchFlg)
+				if (fr[i].isTouch)
 				{
 					touchActions(i, tStatus);
-					touchFlg = true;
+					isTouch = true;
 					break;
 				}
 			}
 		}
-	} while (!touchFlg);
+	} while (!isTouch);
 
 	// empty touch buffer for excess long touch
 	while (ts.touched());
@@ -124,9 +123,9 @@ void touchActions(int n, int tStat)				// touch actions for frame i, touch statu
 		break;
 
 	case aBand:									// auto band button
-		if (tStat == 2) 
+		if (tStat == 2)
 			tunerBandOpts();					// long press
-		else 
+		else
 			aBandButton(tStat);					// short press
 		break;
 

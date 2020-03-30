@@ -29,7 +29,7 @@ void displayLabelStr(int posn, char* txt)
 	frame* fPtr = &fr[posn];
 	label* lPtr = &lab[posn];
 
-	if (!fPtr->enableFlg) return;							// check enabled
+	if (!fPtr->isEnable) return;							// check enabled
 
 	// draw associated frame
 	drawFrame(posn);
@@ -90,7 +90,7 @@ void displayValue(int posn, float curr)						// frame position, float current va
 	int pixLenCurr, pixLenPrev, pixLenLabel, pixLenKeep;	// pixel lentghs of string values
 
 	// return if disabled
-	if (!fPtr->enableFlg) return;
+	if (!fPtr->isEnable) return;
 
 	tft.setFont(vPtr->font);								// set font attribs
 	tft.setTextColor(vPtr->colour);
@@ -99,7 +99,7 @@ void displayValue(int posn, float curr)						// frame position, float current va
 	int digits = 0;
 	dtostrf(vPtr->prevValue, digits, vPtr->decs, strPrev); 	// convert prevValue to char txt
 	dtostrf(curr, digits, vPtr->decs, strCurr);   			// convert float to char txt
-	if (!vPtr->updateFlg)									// update not forced
+	if (!vPtr->isUpdate)									// update not forced
 		if (!strcmp(strPrev, strCurr))
 			return;											// return if no change in value - reduces flicker
 
@@ -171,7 +171,7 @@ void displayValue(int posn, float curr)						// frame position, float current va
 	// save to previous value
 	vPtr->prevValue = curr;
 	// reset update flag
-	vPtr->updateFlg = false;
+	vPtr->isUpdate = false;
 }
 
 /*---------------------------------  displayMeter() --------------------------------------------
@@ -193,7 +193,7 @@ void displayMeter(int posn, float curr, float peak)
 	int span;
 
 	// if frame disabled return
-	if (!fPtr->enableFlg) return;
+	if (!fPtr->isEnable) return;
 
 	x = fPtr->x + mPtr->xGap + 5;											// match scale start position
 	span = fPtr->w - 2 * mPtr->xGap - 5;									// adjust for GAP to frame
@@ -244,7 +244,7 @@ void drawMeterScale(int posn)
 	int span;												// pixel span of meter
 	float scale = mPtr->sEnd - mPtr->sStart;				// get scale factor
 
-	if (!fPtr->enableFlg)
+	if (!fPtr->isEnable)
 		return;
 
 	tft.setTextColor(mPtr->colour);
@@ -310,12 +310,12 @@ void drawFrame(int posn)
 	frame* fPtr = &fr[posn];
 
 	// draw frame if enabled
-	if (fPtr->enableFlg)
+	if (fPtr->isEnable)
 	{
 		// filled rectangle
 		tft.fillRoundRect(fPtr->x, fPtr->y, fPtr->w, fPtr->h, RADIUS, fPtr->bg);
 		// draw outline
-		if (fPtr->outLineFlg)
+		if (fPtr->isOutLine)
 			tft.drawRoundRect(fPtr->x, fPtr->y, fPtr->w, fPtr->h, RADIUS, LINE_COLOUR);
 	}
 }
@@ -325,8 +325,8 @@ void drawFrame(int posn)
 */
 void eraseFrame(int posn)
 {
-	fr[posn].enableFlg = false;							// disable flags
-	fr[posn].touchFlg = false;
+	fr[posn].isEnable = false;							// disable flags
+	fr[posn].isTouch = false;
 	// fill inside frame with background
 	tft.fillRoundRect(fr[posn].x, fr[posn].y,			// erase frame - fill with background colour
 		fr[posn].w, fr[posn].h, RADIUS, BG_COLOUR);
@@ -339,9 +339,9 @@ restores frame after possible mess up such as font change, or overwite by other 
 void restoreFrame(int posn)
 {
 	eraseFrame(posn);									// erases and disables frame
-	fr[posn].enableFlg = true;							// enable flags
-	fr[posn].touchFlg = true;
+	fr[posn].isEnable = true;							// enable flags
+	fr[posn].isTouch = true;
 	drawFrame(posn);									// redraw frame
 	displayLabel(posn);									// redisplay label
-	val[posn].updateFlg = true;							// force value redraw
+	val[posn].isUpdate = true;							// force value redraw
 }

@@ -14,12 +14,12 @@ void autoBand(float fCurr)
 {
 	int currBand = 0, nextBand;
 	static int aBandCountDown;
-	static bool restartFlg;
+	static bool isRrestart;
 
 	// check autoband is enabled and check status and exit conditions
-	if (!fr[aBand].enableFlg || !lab[aBand].stat)		// enable flag and on/off status
+	if (!fr[aBand].isEnable || !lab[aBand].stat)		// enable flag and on/off status
 	{
-		restartFlg = false;
+		isRrestart = false;
 		return;
 	}
 
@@ -27,14 +27,14 @@ void autoBand(float fCurr)
 	if (fCurr != getFreq())
 	{
 		lab[aBand].stat = false;						// reset flags
-		restartFlg = false;					
+		isRrestart = false;					
 		aBandButton(false);								// update button display
 		return;
 	}
 
-	if (!restartFlg)
+	if (!isRrestart)
 	{
-		restartFlg = true;
+		isRrestart = true;
 		aBandCountDown = aBandPar.val;
 		aBandTimer.reset();
 	}
@@ -73,7 +73,7 @@ void autoBand(float fCurr)
 	if (nextBand == NUM_BANDS)
 		nextBand = 0;							// go round loop
 
-	while (!hfBand[nextBand].aBandFlg)
+	while (!hfBand[nextBand].isABand)
 	{
 		nextBand++;
 		if (nextBand == NUM_BANDS)
@@ -82,7 +82,7 @@ void autoBand(float fCurr)
 			return;								// round the loop, all disabled so return
 	}
 
-	encodeBCDFreq(civWriteFreq, hfBand[nextBand].ft8Freq);	// encode new freq
+	encodeFreq(civWriteFreq, hfBand[nextBand].ft8Freq);	// encode new freq
 	civWrite(civWriteFreq);							// change frequency - issue CAT command
 	//displayValue(freq, aBandFreqPrev);
 	//aBandFreqPrev = getFreq();				// save current freq

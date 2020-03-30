@@ -4,8 +4,8 @@
   No publication with acknowledgement to author
 */
 
-/*  Radio %Pwr control functions 
-civ txpwr is 0-255. Represents 0-100%  
+/*  Radio %Pwr control functions
+civ txpwr is 0-255. Represents 0-100%
 Only map before display to prevent accumulated rounding errors
 */
 
@@ -17,8 +17,8 @@ long touch  - changes to spectrum reference
 void txPwrButton(int tStat)
 {
 	int pwr = 0;
-	static int prevPwr = 0;								// prev setting
-	static bool pwrSetFlg;								// pwr set flag
+	static int prevPwr;									// prev setting
+	static bool isPwrSet;								// pwr set flag
 
 	if (tStat == 2)										// long touch
 	{
@@ -27,27 +27,42 @@ void txPwrButton(int tStat)
 	}
 	else												// short touch, change power setting
 	{
-		if (!pwrSetFlg)
+		if (!isPwrSet)									// set %Tx Power  = 100%
 		{
-			// set %Tx Power  = 100%
-			val[txPwr].colour = RED;					// change colour
 			prevPwr = getTxPwr();						// save current power setting
-			putTxPwr(255);								// set power to 100%
-			pwrSetFlg = true;							// set flag
+			pwr = 255;									// full 100% power
+			isPwrSet = true;							// set flag
 		}
 		else
-		{
-			// reset %Tx Power to previous level
-			val[txPwr].colour = CIV_COLOUR;				// set normal colour
-			putTxPwr(prevPwr);							// restore to previous
+		{												// reset %Tx Power to previous level
 			pwr = prevPwr;
-			pwrSetFlg = false;							// reset flag
+			isPwrSet = false;							// reset flag
 		}
 
-		pwr = map(pwr, 0, 255, 0, 100);					// map before display, avoid rounding errors
-		displayValue(txPwr, pwr);						// dispaly power on display
+		putTxPwr(pwr);									// set power 
+		displayTxPwr();									// display %txPower
 	}
 }
+
+
+/*------------------------------------- displayTXPwr()----------------------------------
+map before display, avoid rounding errors
+change colour for highest powers
+*/
+void displayTxPwr()
+{
+	int pwr = getTxPwr();
+
+	pwr = map(pwr, 0, 255, 0, 100);						// check for 100% power
+	if (pwr < 90)										// greater than 90%
+		val[txPwr].colour = CIV_COLOUR;					// set normal colour
+	else
+		val[txPwr].colour = RED;						// change colour
+
+	displayValue(txPwr, pwr);
+}
+
+
 
 
 /*-------------------------------- getTxPwr() --------------------------------------------------------
@@ -56,37 +71,38 @@ Returns pwr = 0-255 (0-100%)
 */
 int getTxPwr()
 {
-	int n;
-	unsigned int n0 = 0, n1 = 0;						// chars read into budder
+	int n;												// chars read into budder
+	unsigned int h = 0, u = 0;							// hundreds, units
 	int inBuff[12];										// civ frequency inBuff buffer
 	int pwr = 0;
 
-	civWrite(civReadPwrSet);							// request read power setting from radio
+	civWrite(civReadTxPwr);							// request read power setting from radio
 	n = civRead(inBuff);								// get number of characters in buffer (9)
 	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
 	{
-		n0 = (inBuff[n-3] / 16) * 10 + inBuff[n-3] % 16;	// convert from BCD
-		n1 = (inBuff[n-2] / 16) * 10 + inBuff[n-2] % 16;
+		h = getBCD(inBuff[n - 3]);						// hundreds, convert from BCD
+		u = getBCD(inBuff[n - 2]);						// units
 	}
-	pwr = n0 * 100 + n1;
-	return(pwr);
+	pwr = h * 100 + u;									// add hundreds and units to get power
+	return pwr;
 }
 
 /*------------------------------ putTxPwr() -------------------------------
 set Tx %power, 0-100.
-range 0-255 (= 0-100%), converts to BCD, write C-IV command
+range 0-255 (= 0-100%), converts decimcal to BCD, write C-IV command
 returns pwr
 */
-void putTxPwr(int pwr)	
+void putTxPwr(int pwr)
 {
-	int n0, n1;											// intermediate conversion
+	unsigned int h, u;											// hundreds and units
 
-	n0 = (int)pwr % 100;								// covert to BCD
-	n1 = ((pwr * 100) - n0 * 100) / 10000;
-	civWritePwrSet[2] = (n1 / 10) * 16 + (n1 % 10);
-	civWritePwrSet[3] = (n0 / 10) * 16 + (n0 % 10);
+	h = pwr / 100;										// 100s
+	u = pwr % 100;										// units
 
-	civWrite(civWritePwrSet);							// write it, 0-255
+	civWriteTxPwr[2] = putBCD(h);						// constant expression
+	civWriteTxPwr[3] = putBCD(u);						//
+
+	civWrite(civWriteTxPwr);							// write it, 0-255
 }
 
 

@@ -11,21 +11,21 @@ Initialises EEPROM to default values from frame.h
 ------------------------------------------------------------------------------------------*/
 void initEEPROM(void)
 {
-	bool eeInitFlg = 0;
+	bool isEEInit = 0;
 	int eeAddr;
 
 	// comment this line to reset EEPROM to default values
-	eeInitFlg = EEPROM.read(0);
+	isEEInit = EEPROM.read(0);
 
-	if (eeInitFlg) {
+	if (isEEInit) {
 		// EEProm has been initialised.  Get values and set variables
 		for (int i = 0; i < NUM_BANDS; i++) {
 			eeAddr = EEADDR_BAND + EEINCR * i;
 			EEPROM.get(eeAddr, hfProm[i]);
 
 			hfBand[i].ref = hfProm[i].ref;
-			hfBand[i].tuneFlg = hfProm[i].tuneFlg;
-			hfBand[i].aBandFlg = hfProm[i].aBandFlg;
+			hfBand[i].isTtune = hfProm[i].isTtune;
+			hfBand[i].isABand = hfProm[i].isABand;
 		}
 		// get variables / parameters
 		EEPROM.get(freqTunePar.eeAddr, freqTunePar);
@@ -38,8 +38,8 @@ void initEEPROM(void)
 		// initialise EEPROM from compiled values
 		for (int i = 0; i < NUM_BANDS; i++) {
 			hfProm[i].ref = hfBand[i].ref;
-			hfProm[i].tuneFlg = hfBand[i].tuneFlg;
-			hfProm[i].aBandFlg = hfBand[i].aBandFlg;
+			hfProm[i].isTtune = hfBand[i].isTtune;
+			hfProm[i].isABand = hfBand[i].isABand;
 			putBandEEPROM(i);
 			//eeAddr = EEADDR_BAND + EEINCR * i;
 			//EEPROM.put(eeAddr, hfProm[i]);

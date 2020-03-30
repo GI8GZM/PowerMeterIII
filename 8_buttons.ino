@@ -125,7 +125,7 @@ void swrButton(int tStat)
 {
 	if (tStat == 2)
 	{
-		civEnableFlg = !civEnableFlg;					// swap between civ mode and basic mode
+		isCivEnable = !isCivEnable;					// swap between civ mode and basic mode
 		initDisplay();									// initialise screen, civMode frames or basicMode frames
 	}
 	else
@@ -155,7 +155,7 @@ void bandButton(int tStat)
 		return;
 	else									// short touch	
 	{
-		if (fr[freq].touchFlg)
+		if (fr[freq].isTouch)
 		{									// if enabled, band active
 			eraseFrame(freq);
 			restoreFrame(band);

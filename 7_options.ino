@@ -32,7 +32,7 @@ void splashScreen()
 	// delay - allows for screen touch to call screenCal()
 	for (int i = 0; i < SPLASH_DELAY; i += 10)
 	{
-		if (touched() != 0)
+		if (!ts.tirqTouched())
 		{
 			screenCal();						// go to screen calibration
 			break;								// break from for.. loop
@@ -89,18 +89,18 @@ void tunerBandOpts()			// set frequency difference to trigger autotune
 					// even number selected - freqTune Options
 					if (!(chkNum % 2))
 					{
-						hfBand[bNum].tuneFlg = !hfBand[bNum].tuneFlg;
-						drawCircleOpts(tb[chkNum].x, tb[chkNum].y, hfBand[bNum].tuneFlg, chkNum);
+						hfBand[bNum].isTtune = !hfBand[bNum].isTtune;
+						drawCircleOpts(tb[chkNum].x, tb[chkNum].y, hfBand[bNum].isTtune, chkNum);
 					}
 					// odd number - freqTune Options
 					else
 					{
-						hfBand[bNum].aBandFlg = !hfBand[bNum].aBandFlg;
-						drawCircleOpts(tb[chkNum].x, tb[chkNum].y, hfBand[bNum].aBandFlg, chkNum);
+						hfBand[bNum].isABand = !hfBand[bNum].isABand;
+						drawCircleOpts(tb[chkNum].x, tb[chkNum].y, hfBand[bNum].isABand, chkNum);
 					}
 					// update EEPROM
-					hfProm[bNum].tuneFlg = hfBand[bNum].tuneFlg;
-					hfProm[bNum].aBandFlg = hfBand[bNum].aBandFlg;
+					hfProm[bNum].isTtune = hfBand[bNum].isTtune;
+					hfProm[bNum].isABand = hfBand[bNum].isABand;
 					putBandEEPROM(bNum);					// save data to EEPROM
 				}
 			}
@@ -158,11 +158,11 @@ int drawTuneBandOpts()
 			y = yStart + yd * i;
 
 		// tuneFlg are even, two circles per line
-		drawCircleOpts(x, y, hfBand[i].tuneFlg, i * 2);
+		drawCircleOpts(x, y, hfBand[i].isTtune, i * 2);
 
 		// space to next column
 		x += xd;
-		drawCircleOpts(x, y, hfBand[i].aBandFlg, i * 2 + 1);
+		drawCircleOpts(x, y, hfBand[i].isABand, i * 2 + 1);
 
 		// display band
 		tft.setCursor(x, y - 5);
@@ -180,7 +180,7 @@ int drawTuneBandOpts()
 	w = drawTouchBoxOpts(x, y, "More...", i);
 
 	// return max drawTouchBoxOpts index
-	return (i);
+	return i;
 }
 
 /*--------------------------------- setParamOpts() -------------------------------------------------
@@ -191,7 +191,7 @@ void setParamOpts()
 {
 	int x, y;
 	int i = 0, n = 0;
-	bool flg;
+	bool isFlg;
 
 	tft.fillScreen(ALT_BG);
 	tft.setTextColor(WHITE);
@@ -218,7 +218,7 @@ void setParamOpts()
 	{
 		// check which box touched
 		n = chkParamOpts(i);
-		flg = false;
+		isFlg = false;
 
 		switch (n)
 		{
@@ -233,9 +233,9 @@ void setParamOpts()
 			break;
 		case 2:
 			// toggle stat
-			freqTunePar.flg = !freqTunePar.flg;			// set/reset Freq Tune Flag for startup
-			flg = freqTunePar.flg;
-			drawCircleOpts(tb[n].x, tb[n].y, flg, n);
+			freqTunePar.isFlg = !freqTunePar.isFlg;			// set/reset Freq Tune Flag for startup
+			isFlg = freqTunePar.isFlg;
+			drawCircleOpts(tb[n].x, tb[n].y, isFlg, n);
 			break;
 
 			// increase/decrease time
@@ -248,9 +248,9 @@ void setParamOpts()
 				aBandPar.val = 15;
 			break;
 		case 5:
-			aBandPar.flg = !aBandPar.flg;
-			flg = aBandPar.flg;
-			drawCircleOpts(tb[n].x, tb[n].y, flg, n);
+			aBandPar.isFlg = !aBandPar.isFlg;
+			isFlg = aBandPar.isFlg;
+			drawCircleOpts(tb[n].x, tb[n].y, isFlg, n);
 			break;
 
 			// Exit box
@@ -286,13 +286,13 @@ int chkParamOpts(int n)
 	int i;									// item touched
 	int tStatus = 0;
 	TS_Point p;								// touch screen result structure
-	bool touchFlg = false;
+	bool isTouch = false;
 
 	do
 	{
 		tStatus = touched();					// check for touch
 		if (!tStatus) 							// tStatus: 0 = no touch, 1 = touched, 2 = long touch
-			return(-1);							// false/no touch
+			return -1;							// false/no touch
 
 		p = ts.getPoint();
 		// map(value, fromLow, fromHigh, toLow, toHigh). defined in touchOptions.h
@@ -307,17 +307,17 @@ int chkParamOpts(int n)
 			{
 				if (y > tb[i].y - T_OFFSET && y < tb[i].y + T_OFFSET)
 				{
-					touchFlg = true;
+					isTouch = true;
 					break;
 				}
 			}
 		}
-	} while (!touchFlg);
+	} while (!isTouch);
 
 	// make sure touch buffer empty
 	//while (ts.touched());
 
-	return(i);		// return item touched
+	return i;		// return item touched
 }
 
 /*----------------------------------------setParam()--------------------------------------
@@ -340,7 +340,7 @@ int setParam(int posn, const char* txt, int index)
 	// draw plus/minus underneath
 	drawPlusMinusOpts(posn, index);
 	index += 2;									// two items: Plus & Minus
-	return (index);
+	return index;
 }
 
 /*------------------------------setOptFlg()----------------------------------------
@@ -352,14 +352,14 @@ int setOptFlg(int posn, const char* txt, param par, int i)
 	tft.setFont(FONT14);
 	tft.setTextColor(WHITE);
 	y = fr[posn].y + 50;
-	drawCircleOpts(x, y, par.flg, i);
+	drawCircleOpts(x, y, par.isFlg, i);
 	i++;
 	tft.setCursor(x, y - 5);
 
 	tft.print("     ");
 	tft.printf(txt);
 
-	return(i);
+	return i;
 }
 
 /*---------drawPlusMinusOpts()------------------------------------
@@ -427,7 +427,7 @@ int drawTouchBoxOpts(int x, int y, const char* txt, int i)
 	tb[i].y = y + 10;
 
 	// return width
-	return(w);
+	return w;
 }
 
 /*------------------drawCircleOpts()---------------------------------------
@@ -435,11 +435,11 @@ x, y; position
 flag: 1 = filled circle
 ti: touch box index
 */
-void drawCircleOpts(int x, int y, bool flg, int ti)
+void drawCircleOpts(int x, int y, bool isFlg, int ti)
 {
 	int r = 10;
 
-	if (flg)
+	if (isFlg)
 	{
 		tft.fillCircle(x, y, r, WHITE);
 		tft.drawCircle(x, y, r, WHITE);

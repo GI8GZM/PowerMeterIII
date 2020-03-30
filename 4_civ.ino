@@ -21,20 +21,20 @@ float getFreq()
 {
 	int n;									// chars read into budder
 	float f;
-	int inBuff[12];						// civ frequency inBuff buffer
+	int inBuff[12];							// civ frequency inBuff buffer
 
-	n = civWrite(civReadFreq);					// request read frequency from radio
+	n = civWrite(civReadFreq);				// request read frequency from radio
 	if (n == 0)								// timed out
-		return (0);
+		return 0;
 
 	n = civRead(inBuff);					// buffer, printflg
 	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
 	{
-		f = (decodeBCDFreq(inBuff) / 1000);		// decode frequency  and convert to kHz
-		return (f / 1000);                  // return MHZ
+		f = (decodeFreq(inBuff) / 1000);	// decode frequency  and convert to kHz
+		return f / 1000;					// return MHZ
 	}
 	else
-		return (0);							// nothing read, return 0
+		return 0;							// nothing read, return 0
 }
 
 /*--------------------------- getBand() --------------------------------------------------------------------
@@ -46,7 +46,7 @@ int getBand(float freq)
 {
 	int cBand = -1;							// local band number
 	static int pBand;
-	int flg = false;
+	int isFlg = false;
 
 	// get band   -1 = no band, 0=160mtrs, 1=80mtrs, etc.
 	for (int i = 0; i < NUM_BANDS; i++)
@@ -54,16 +54,16 @@ int getBand(float freq)
 		if (freq >= hfBand[i].bandStart && freq <= hfBand[i].bandEnd)
 		{
 			cBand = i;
-			flg = true;
+			isFlg = true;
 			break;
 		}
 	}
 
-	if (cBand == pBand)				// compare to previousBand
-		return(cBand);						// return if no change
+	if (cBand == pBand)						// compare to previousBand
+		return cBand;						// return if no change
 
 	// update label with band txt
-	if (!flg)
+	if (!isFlg)
 	{
 		char txt[] = "No Band ";
 		displayLabelStr(band, txt);
@@ -73,12 +73,12 @@ int getBand(float freq)
 	{
 		// do not use restoreFrame(band);
 		displayLabel(band);
-		val[band].updateFlg = true;			// force value update
+		val[band].isUpdate = true;			// force value update
 	}
 
 	// set global bandCurr & return
-	pBand = cBand;					// save to previousBand
-	return(cBand);
+	pBand = cBand;							// save to previousBand
+	return cBand;
 }
 
 
@@ -96,29 +96,27 @@ Global: inBuff
 Calls:
 */
 int civRead(int* buff)						// read into buff, serial print if flg set
-//int civRead(char* buff)						// read into buff, serial print if flg set
+//int civRead(char* buff)					// read into buff, serial print if flg set
 {
 	int n = 0;
 	char inChar = '\0';						// incoming character
-	bool timeOutFlg = false;
+	bool isTtimeOut = false;
 
 	civTimeOut.reset();						// set timeout timer
 	do
 	{
 		delay(CIV_READ_DELAY);				// delay for read buffer
 		if (civSerial.available() > 0)      // character waiting?
-		{
 			inChar = civSerial.read();	    // read it - empties input buffer
-		}
 		if (civTimeOut.check())
 		{
-			timeOutFlg = true;				// timedout, set flg
+			isTtimeOut = true;				// timedout, set flg
 			break;							// break from loop
 		}
-	} while (inChar != 0xFE && !timeOutFlg);	// preamble start
+	} while (inChar != 0xFE && !isTtimeOut);	// preamble start
 	buff[n++] = inChar;						// load buff with next character
-	if (timeOutFlg)
-		return (0);							// timeout occurred, return 0
+	if (isTtimeOut)
+		return 0;							// timeout occurred, return 0
 
 	// get rest of frame
 	civTimeOut.reset();						// set timeout timer
@@ -126,21 +124,19 @@ int civRead(int* buff)						// read into buff, serial print if flg set
 	{
 		delay(CIV_READ_DELAY);
 		if (civSerial.available() > 0) 		// character waiting?
-		{
 			inChar = civSerial.read();		// read it - empties input buffer
-		}
 		if (civTimeOut.check())				// timeout if looping too long
 		{
-			timeOutFlg = true;				// set timeout flg
+			isTtimeOut = true;				// set timeout flg
 			break;
 		}
 		buff[n++] = inChar;					// load buff with next character
-	} while (inChar != 0xFD && !timeOutFlg);	// check for end of inBuff (0xFD)
+	} while (inChar != 0xFD && !isTtimeOut);	// check for end of inBuff (0xFD)
 
-	if (timeOutFlg)
-		return (0);							// timeout occurred, return 0
+	if (isTtimeOut)
+		return 0;							// timeout occurred, return 0
 	else
-		return (n);							// n = number of characters read, 0 = error
+		return n;							// n = number of characters read, 0 = error
 }
 
 /* ------------------------------ civWrite() ---------------------------------------------------------------
@@ -155,7 +151,7 @@ int civWrite(int* buff)
 {
 	int n = 0;
 	char inChar = '\0';						// incoming, read char
-	bool timeOutFlg = false;
+	bool isTtimeOut = false;
 
 	// flush send buffer
 	civSerial.flush();
@@ -172,19 +168,17 @@ int civWrite(int* buff)
 		do
 		{
 			if (civSerial.available() > 0) 	// character waiting?
-			{
 				inChar = civSerial.read();
-			}
 			if (civTimeOut.check())
 			{
-				timeOutFlg = true;
+				isTtimeOut = true;
 				break;
 			}
-		} while (inChar != civPreamble[i] && !timeOutFlg);	// compare to written char
+		} while (inChar != civPreamble[i] && !isTtimeOut);	// compare to written char
 	}
 
-	if (timeOutFlg)							// timed out, return n=0 bytes
-		return (0);
+	if (isTtimeOut)							// timed out, return n=0 bytes
+		return 0;
 
 	// send rest of ci-v command
 	civTimeOut.reset();						// set timeout timer
@@ -196,70 +190,60 @@ int civWrite(int* buff)
 		{
 			// delay(CIV_DELAY);
 			if (civSerial.available() > 0) 	// character waiting?
-			{
 				inChar = civSerial.read();
-			}
 		} while (inChar != buff[n]);
+
 		if (civTimeOut.check())
 		{
-			timeOutFlg = true;
+			isTtimeOut = true;
 			break;
 		}
-	} while (buff[n++] != 0xFD && !timeOutFlg);	// do until end of buff
+	} while (buff[n++] != 0xFD && !isTtimeOut);	// do until end of buff
 
-	if (timeOutFlg)
-		return (0);
+	if (isTtimeOut)
+		return 0;							// return 0 if timed out
 	else
-		return (n);							// return number of bytes
+		return n;							// return number of bytes
 }
 
 /*------------------------------------ decodeBCDFreq() -----------------------------------------
- function to decode frequency data.
-  Returns: frequency in Hz or 0 if fail
-  Global: none
-  Calls: none
+ function to decode BCD frequency data.
   Called By: civreadFreq()
 */
-float decodeBCDFreq(int* buff)
+float decodeFreq(int* buff)
 {
-	unsigned long m, k1, k2, h;
+	//unsigned long m, k1, k2, h;
+	long mult = 1000000;						// multiplier =  one million
+	float freq = 0.0;							// decoded frequency
 
-	m = (buff[8]);
-	m = m - m / 16 * 6;					// calculate MHz
-	k1 = buff[7];
-	k1 = k1 - k1 / 16 * 6;				// calculate KHz, first part
-	k2 = buff[6];
-	k2 = k2 - k2 / 16 * 6;				// calculate second part, kHz
-	h = buff[5];
-	h = h - h / 16 * 6;
+	for (int i = 4; i > 0; i--)					// 4 bytes, 8-4 in buffer
+	{
+		freq += getBCD(buff[4 + i])*mult;		// start with MHz
+		mult /= 100;							// decrement each byte
+	}
+	return freq;								// return frequency
 
-	return ((m * 1000000) + (k1 * 10000)
-		+ (k2 * 100) + h);				// freq variable stores frequency in MMkkkH  format
 }
 
 /* --------------------------------- encodeBCDFreq() -----------------------------------
 function to encode float freq to CI-V format.
 buff[4] - buff[8]	Called by: initAutoBand(), autoBand()
 */
-void encodeBCDFreq(int* buff, float f)		// buffer, value   set Frequency
+void encodeFreq(int* buff, float freq)			// buffer, value   set Frequency
 {
-	long  x;
+	long mult = 1000000;						// multiplier =  one million
+	long  fl = freq * mult;						// convert decimal MHz freq to Hz
 
-	f = f * 1000000;					// covert to Hz
-	x = int(f / 1000000);				// maths to convert to BCD Hex
-	buff[4] = (int(x / 10) * 16 - int(x / 10) * 10 + x);	// encode MHz
+	for (int i = 4; i > 0; i--)					// convert 4 bytes to BCD
+	{
+		int x = (fl % (mult * 100)) / mult;		// convert each byte		
+		buff[i] = putBCD(x);					// write to buffer
+		mult = mult / 100;						// decrement mult for each byute
+	}
 
-	f = f - x * 1000000;
-	x = int(f / 10000);
-	buff[3] = (int(x / 10) * 16 - int(x / 10) * 10 + x);	// encode KHz
 
-	f = f - x * 10000;
-	x = int(f / 100);
-	buff[2] = (int(x / 10) * 16 - int(x / 10) * 10 + x);	// encode KHz
 
-	f = f - x * 100;
-	x = int(f / 1);
-	buff[1] = (int(x / 10) * 16 - int(x / 10) * 10 + x);	//encode Hz
+
 }
 
 /*---------------------------------- civPrintBuffer() --------------------------------
@@ -277,6 +261,6 @@ void civBuffPrint(int* buff)
 	Serial.print(buff[n++], HEX);
 
 	Serial.print("      Chars: ");
-	Serial.println(n,DEC);
+	Serial.println(n, DEC);
 }
 

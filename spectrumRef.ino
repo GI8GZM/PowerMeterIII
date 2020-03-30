@@ -54,7 +54,7 @@ float setRef(int band)
 		putRef(ref);						// send spec ref to radio
 		prevBand = band;					// save current band
 	}
-	return(ref);
+	return ref;
 }
 
 /*------------------------------ getRef() -------------------------------
@@ -78,7 +78,7 @@ float getRef()
 	sref = n0 + (float)n1 / 100.0;						// format
 	if (inBuff[n - 2]) sref = sref * -1;
 
-	return(sref);
+	return sref;
 }
 
 /*------------------------------ putRef() ---------------------------------
