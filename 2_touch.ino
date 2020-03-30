@@ -7,6 +7,7 @@
 /*------------------------------------------------------------------------------------------
    XPT2046 touch functions
    Uses XPT2046 interrupts, check for a touch (ts.tirqTouched())
+   Interrupt driven - only get here if screen touched
 */
 
 /*------------------------------- touched() ------------------------------------------------------------

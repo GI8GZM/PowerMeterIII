@@ -1,7 +1,7 @@
 /*---------------------------------------------------------
   POWERMETER III + ICOM 7300 CONTROLLER
   © Copyright 2018-2020  Roger Mawhinney, GI8GZM.
-  No publication with acknowledgement to author
+  No publication with acknowledgement to author.
 */
 
 /*-------------------------------------- autoBand() -----------------------------------------------------------------------
@@ -10,58 +10,51 @@ uses Metro timer for 1 sec count
 skips disabled bands. at end band goes back to start.  if all bands disabled, will stop at current frequeny
 uses lab.stat for on/off signals
 */
-void autoBand(float fCurr)
+
+static bool isRestart;								// true  = restart timer at full countdown
+
+void autoBand(float freq)								// freq passed is probably current frequency
 {
 	int currBand = 0, nextBand;
-	static int aBandCountDown;
-	static bool isRrestart;
+	static int aBandCountDown;							// Metro timer countdown
 
 	// check autoband is enabled and check status and exit conditions
-	if (!fr[aBand].isEnable || !lab[aBand].stat)		// enable flag and on/off status
-	{
-		isRrestart = false;
+	if (!fr[aBand].isEnable || !lab[aBand].stat)		// enable flag and on/off status{
 		return;
-	}
 
-	// frequency changed? Turn off and update button
-	if (fCurr != getFreq())
+	// frequency manually changed? Turn off and update button
+	if (freq != getFreq())								// get current frequency
 	{
-		lab[aBand].stat = false;						// reset flags
-		isRrestart = false;					
+		lab[aBand].stat = false;						// reset flags, stop countdown
+		isRestart = false;
 		aBandButton(false);								// update button display
 		return;
 	}
 
-	if (!isRrestart)
+	if (isRestart)										// check for restart 
 	{
-		isRrestart = true;
-		aBandCountDown = aBandPar.val;
+		isRestart = false;
+		aBandCountDown = aBandPar.val;					// restart countdown from full value
 		aBandTimer.reset();
+		displayValue(aBand, aBandCountDown);
 	}
 
-	// is 1sec timer triggered (Metro timer)			/// only go past here if 1 sec expires
-	if (!aBandTimer.check())
-		return;
+
+	if (!aBandTimer.check())							// is 1sec timer triggered (Metro timer)
+		return;											// only go past here if 1 sec expires
 	else
 	{
-		// display countdown and return if not complete
-		aBandCountDown--;
+		aBandCountDown--;								// display countdown 
 		displayValue(aBand, aBandCountDown);
 		if (aBandCountDown > 0)
-			return;
+			return;										// countdown not complete, return
 	}
 
-	// only get here if countdown complete		
-	aBandTimer.reset();
 
-	//next band
-	   //displayValue(aBand, aBandCountDown);			// draw aBandCountDown - display 0
-
-	   // get next frequency
-	fCurr = getFreq();
-	for (int i = 0; i < NUM_BANDS; i++)
+	//freq = getFreq();									
+	for (int i = 0; i < NUM_BANDS; i++)					// get current band
 	{
-		if (fCurr == hfBand[i].ft8Freq)
+		if (freq == hfBand[i].ft8Freq)
 		{
 			currBand = i;
 			break;
@@ -69,9 +62,9 @@ void autoBand(float fCurr)
 	}
 
 	// change to next enabled frequency
-	nextBand = currBand + 1;
+	nextBand = currBand + 1;							// next band > number of bands?
 	if (nextBand == NUM_BANDS)
-		nextBand = 0;							// go round loop
+		nextBand = 0;									// go round loop
 
 	while (!hfBand[nextBand].isABand)
 	{
@@ -79,18 +72,14 @@ void autoBand(float fCurr)
 		if (nextBand == NUM_BANDS)
 			nextBand = 0;
 		if (nextBand == currBand)
-			return;								// round the loop, all disabled so return
+			return;										// round the loop, all disabled so return
 	}
 
 	encodeFreq(civWriteFreq, hfBand[nextBand].ft8Freq);	// encode new freq
-	civWrite(civWriteFreq);							// change frequency - issue CAT command
-	//displayValue(freq, aBandFreqPrev);
-	//aBandFreqPrev = getFreq();				// save current freq
-
-	aBandCountDown = aBandPar.val;				// reset autoband timer
-
-	// update button
-	aBandButton(false);
+	civWrite(civWriteFreq);								// change frequency - issue CAT command
+	aBandCountDown = aBandPar.val;						// reset autoband timer
+	aBandTimer.reset();									// reset timer to full countdown
+	aBandButton(false);									// update button
 }
 
 /*----------------------------------- aBandButton() ----------------------------------------------------------------
@@ -120,6 +109,7 @@ void aBandButton(int tStat)
 		fr[aBand].bg = MENU_COLOUR;
 		displayLabel(aBand);							// display label, time is blank
 		displayValue(aBand, aBandPar.val);				// display time
+		isRestart = true;
 	}
 }
 

@@ -94,7 +94,7 @@ int yMapT = 300, yMapB = 3800;
 #endif
 #define		MAPX map(p.x, xMapL, xMapR, 0, 320)		// reveresed touch screen mapping
 #define		MAPY map(p.y, yMapT, yMapB, 0, 240)
-# define	FONT_PM AwesomeF000_16					// font for plus/minus symbols
+#define	    FONT_PM AwesomeF000_16					// font for plus/minus symbols
 #define		PLUS_SYMBOL 85							// + symbol
 #define		MINUS_SYMBOL 86							// - symbol
 #define	    T_OFFSET 15							    // touch offset distance (pixels)
@@ -111,7 +111,7 @@ volatile int sample;							    // ADC cyclic buffer sample
 volatile long buf0Tot, buf1Tot;					    // cyclic buffer totals
 volatile unsigned int buf0Pk, buf1Pk;			    // cyclic buffer peak values
 volatile unsigned int buf0[MAXBUF + 1] = {}, buf1[MAXBUF + 1] = {};  // cylic buffer used by interrupt routine
-#define     SAMPLE_INTERVAL 500						 // ADC sample interval (microsecs)
+#define     SAMPLE_INTERVAL 500						// ADC sample interval (microsecs)
 IntervalTimer sampleTimer;						    // getADC interupt timer
 
 /*----------Metro timers-----------------------------------------*/
