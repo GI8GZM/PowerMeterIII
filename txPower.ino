@@ -76,7 +76,7 @@ int getTxPwr()
 	int inBuff[12];										// civ frequency inBuff buffer
 	int pwr = 0;
 
-	civWrite(civReadTxPwr);							// request read power setting from radio
+	civWrite(civReadTxPwr);								// request read power setting from radio
 	n = civRead(inBuff);								// get number of characters in buffer (9)
 	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
 	{
@@ -94,7 +94,7 @@ returns pwr
 */
 void putTxPwr(int pwr)
 {
-	unsigned int h, u;											// hundreds and units
+	unsigned int h, u;									// hundreds and units
 
 	h = pwr / 100;										// 100s
 	u = pwr % 100;										// units

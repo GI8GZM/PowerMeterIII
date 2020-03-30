@@ -168,12 +168,12 @@ Returns: 0 = off, 1 = on, 2 = tuning
 int getTunerStat()
 {
 	int n;
-	int inBuff[12];					// civ frequency inBuff buffer
+	int inBuff[12];						// civ frequency inBuff buffer
 
 	civWrite(civReadTuner);				// request read frequency from radio
 	n = civRead(inBuff);
 	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
-		return inBuff[6];				// return tuner status
+		return inBuff[n-2];				// return tuner status
 	else
 		return -1;
 }

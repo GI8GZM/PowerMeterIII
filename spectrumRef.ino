@@ -14,26 +14,25 @@ void refButton(int tStat)
 {
 	if (tStat != 2)
 	{
-		eraseFrame(ref);					// revert to txPwr
+		eraseFrame(ref);								// revert to txPwr
 		restoreFrame(txPwr);
 	}
 	else
 	{
 		// long touch saves current radio ref to hfBand
+		float freq = getFreq();							// need frequency to get band
+		int band = getBand(freq);						// get band number
 
-		float freq = getFreq();				// need frequency to get band
-		int band = getBand(freq);			// get band number
-
-		float r = getRef();					// get current spectrum ref
+		float r = getRef();								// get current spectrum ref
 		hfBand[band].ref = r;
-		hfProm[band].ref = r;				// save to EEPROM
-		putBandEEPROM(band);				// update EEProm
+		hfProm[band].ref = r;							// save to EEPROM
+		putBandEEPROM(band);							// update EEProm
 
 		// blink frame to show write
 		eraseFrame(ref);
-		delay(100);							// 0.1 sec blink to show memory write
+		delay(100);										// 0.1 sec blink to show memory write
 		restoreFrame(ref);
-		displayValue(ref, r);				// update reffarme with value
+		displayValue(ref, r);							// update reffarme with value
 	}
 }
 
@@ -47,12 +46,12 @@ float setRef(int band)
 	static int prevBand;
 	float ref;
 
-	ref = getRef();							// read Ref from radio
-	if (band != prevBand)					// band change?
+	ref = getRef();										// read Ref from radio
+	if (band != prevBand)								// band change?
 	{
-		ref = hfBand[band].ref;				// get ref
-		putRef(ref);						// send spec ref to radio
-		prevBand = band;					// save current band
+		ref = hfBand[band].ref;							// get ref
+		putRef(ref);									// send spec ref to radio
+		prevBand = band;								// save current band
 	}
 	return ref;
 }
@@ -64,46 +63,46 @@ Returns float (ref)
 float getRef()
 {
 	int n;												// chars read into buffer
-	unsigned int n0 = 0, n1 = 0;
-	int inBuff[12];										// civ frequency inBuff buffer
+	int u = 0, d = 0;									// units & decimals
 	float sref = 0.0;									// spectrum ref
+	int inBuff[12];										// civ frequency inBuff buffer
 
 	n = civWrite(civReadRef);							// request read frequency from radio
 	n = civRead(inBuff);								// buffer, printflg
-	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)			// check format of serial stream
+	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
 	{
-		n0 = (inBuff[n - 4] / 16) * 10 + inBuff[n - 4] % 16;	// convert from BCD
-		n1 = (inBuff[n - 3] / 16) * 10 + inBuff[n - 3] % 16;
+		u = getBCD(inBuff[n - 4]);						// convert from BCD
+		d = getBCD(inBuff[n - 3]);
 	}
-	sref = n0 + (float)n1 / 100.0;						// format
-	if (inBuff[n - 2]) sref = sref * -1;
+	sref = u + (float)d / 100.0;						// format
+	if (inBuff[n - 2])
+		sref = sref * -1;								// if negative
 
 	return sref;
 }
 
 /*------------------------------ putRef() ---------------------------------
-set radio sprectrum reference
+set radio spectrum reference
 ref - spectrum reference to set
 */
 void putRef(float ref)
 {
-	int bytes = 7;							// num bytes in civ command, excludeing preamble
-	int n0, n1;
+	// civWriteRef[] = 7 bytes, excluding preamble
+	int u, d;											// units & decimals
 
 	// convert to BVD format for CI-V
-	// check if float negative
-	if (ref < 0)
-		civWriteRef[bytes - 2] = 0x01;
+	if (ref < 0)										// check if float negative
+
+		civWriteRef[5] = 0x01;							// negative
 	else
-		civWriteRef[bytes - 2] = 0x00;
+		civWriteRef[5] = 0x00;							// positive
 
 	// convert float to BCD
-	ref = abs(ref);
-	n0 = (int)ref;
-	n1 = (ref * 100) - n0 * 100;
-
-	civWriteRef[bytes - 4] = (n0 / 10) * 16 + (n0 % 10);
-	civWriteRef[bytes - 3] = (n1 / 10) * 16 + (n1 % 10);
+	ref = abs(ref) * 10;								// allow for 1 decimal
+	u = (int)ref / 10;									// units
+	d = (int)ref % 100;									// decimal
+	civWriteRef[3] = putBCD(u);
+	civWriteRef[4] = putBCD(d);
 
 	civWrite(civWriteRef);
 }
