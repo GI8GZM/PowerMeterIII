@@ -167,7 +167,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties arduino.upload.port="COM9" config.Debug.customdebug_teensy31_debugger_type="universal" />
+      <UserProperties arduino.upload.port="COM9" config.Debug.customdebug_teensy31_debugger_type="universal" VM.DebugVariablesWindow.ColumnVisibleFunctionName="1" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

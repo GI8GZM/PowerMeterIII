@@ -46,13 +46,14 @@ float setRef(int band)
 	static int prevBand;
 	float ref;
 
-	ref = getRef();										// read Ref from radio
 	if (band != prevBand)								// band change?
 	{
 		ref = hfBand[band].ref;							// get ref
 		putRef(ref);									// send spec ref to radio
 		prevBand = band;								// save current band
+		//ref = getRef();								// read ref from radio
 	}
+	ref = getRef();										// read ref from radio
 	return ref;
 }
 
@@ -64,7 +65,7 @@ float getRef()
 {
 	int n;												// chars read into buffer
 	int u = 0, d = 0;									// units & decimals
-	float sref = 0.0;									// spectrum ref
+	float ref = 0.0;									// spectrum ref
 	int inBuff[12];										// civ frequency inBuff buffer
 
 	n = civWrite(civReadRef);							// request read frequency from radio
@@ -74,11 +75,11 @@ float getRef()
 		u = getBCD(inBuff[n - 4]);						// convert from BCD
 		d = getBCD(inBuff[n - 3]);
 	}
-	sref = u + (float)d / 100.0;						// format
+	ref = u + (float)d / 100.0;							// format
 	if (inBuff[n - 2])
-		sref = sref * -1;								// if negative
+		ref = ref * -1;									// if negative
 
-	return sref;
+	return ref;
 }
 
 /*------------------------------ putRef() ---------------------------------
@@ -92,7 +93,6 @@ void putRef(float ref)
 
 	// convert to BVD format for CI-V
 	if (ref < 0)										// check if float negative
-
 		civWriteRef[5] = 0x01;							// negative
 	else
 		civWriteRef[5] = 0x00;							// positive
@@ -100,7 +100,7 @@ void putRef(float ref)
 	// convert float to BCD
 	ref = abs(ref) * 10;								// allow for 1 decimal
 	u = (int)ref / 10;									// units
-	d = (int)ref % 100;									// decimal
+	d = (int)ref % 10;									// decimal
 	civWriteRef[3] = putBCD(u);
 	civWriteRef[4] = putBCD(d);
 
