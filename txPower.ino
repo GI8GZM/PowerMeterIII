@@ -23,7 +23,8 @@ void txPwrButton(int tStat)
 	if (tStat == 2)										// long touch
 	{
 		eraseFrame(txPwr);								// erase power
-		restoreFrame(ref);								// display ref
+		restoreFrame(sRef);								// display ref
+		displayValue(sRef, getRef());					// update ref frame with value
 	}
 	else												// short touch, change power setting
 	{
@@ -44,7 +45,6 @@ void txPwrButton(int tStat)
 	}
 }
 
-
 /*------------------------------------- displayTXPwr()----------------------------------
 map before display, avoid rounding errors
 change colour for highest powers
@@ -62,12 +62,10 @@ void displayTxPwr()
 	displayValue(txPwr, pwr);
 }
 
-
-
-
 /*-------------------------------- getTxPwr() --------------------------------------------------------
 reads RF Power setting from radio
 Returns pwr = 0-255 (0-100%)
+int	civReadTxPwr[] =    { 0x14, 0x0A, 0xFD };			// read RF Power setting
 */
 int getTxPwr()
 {
@@ -78,7 +76,7 @@ int getTxPwr()
 
 	civWrite(civReadTxPwr);								// request read power setting from radio
 	n = civRead(inBuff);								// get number of characters in buffer (9)
-	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
+	if (inBuff[3] == CIVRADIO && inBuff[n - 1] == 0xFD)	// check format of serial stream
 	{
 		h = getBCD(inBuff[n - 3]);						// hundreds, convert from BCD
 		u = getBCD(inBuff[n - 2]);						// units
@@ -91,6 +89,9 @@ int getTxPwr()
 set Tx %power, 0-100.
 range 0-255 (= 0-100%), converts decimcal to BCD, write C-IV command
 returns pwr
+
+int	civWriteTxPwr[] =   { 0x14, 0x0A, 0x00, 0x00, 0xFD };	// set RF Power
+
 */
 void putTxPwr(int pwr)
 {
@@ -100,7 +101,7 @@ void putTxPwr(int pwr)
 	u = pwr % 100;										// units
 
 	civWriteTxPwr[2] = putBCD(h);						// constant expression
-	civWriteTxPwr[3] = putBCD(u);						//
+	civWriteTxPwr[3] = putBCD(u);						
 
 	civWrite(civWriteTxPwr);							// write it, 0-255
 }

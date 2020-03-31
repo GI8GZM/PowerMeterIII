@@ -16,6 +16,11 @@ frequency returned.
 Returns: frequency or 0 if fail
 Global: inBuff, readFreq
 Calls: civRead(), decodeBCD()
+int civReadPreamble[] = { 0xFE, 0xFE,  CIVADDR, CIVRADIO };			    // write command preamble
+int civWriteFreq[] =    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };	// set frequency
+
+
+
   */
 float getFreq()
 {
@@ -28,7 +33,7 @@ float getFreq()
 		return 0;
 
 	n = civRead(inBuff);					// buffer, printflg
-	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
+	if (inBuff[3] == CIVRADIO && inBuff[n - 1] == 0xFD)	// check format of serial stream
 	{
 		f = (decodeFreq(inBuff) / 1000);	// decode frequency  and convert to kHz
 		return f / 1000;					// return MHZ
@@ -159,22 +164,22 @@ int civWrite(int* buff)
 	civTimeOut.reset();						// set timeout timer
 
 	// send civ write preamble
-	civSerial.write(civPreamble[0]);		// send first char
+	civSerial.write(civWritePreamble[0]);		// send first char
 	delay(CIV_WRITE_DELAY);					// just one delay required
 
 	for (int i = 1; i < 4; i++)				// send rest of 4 char preamble
 	{
-		civSerial.write(civPreamble[i]);
+		civSerial.write(civWritePreamble[i]);
 		do
 		{
-			if (civSerial.available() > 0) 	// character waiting?
+			if (civSerial.available() > 0) 	// echo character waiting?
 				inChar = civSerial.read();
 			if (civTimeOut.check())
 			{
 				isTtimeOut = true;
 				break;
 			}
-		} while (inChar != civPreamble[i] && !isTtimeOut);	// compare to written char
+		} while (inChar != civWritePreamble[i] && !isTtimeOut);	// compare to written char
 	}
 
 	if (isTtimeOut)							// timed out, return n=0 bytes

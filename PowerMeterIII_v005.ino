@@ -153,7 +153,7 @@ void setup()
 	//initialise  others
 	samplesAvg = samplesDefPar.val;								// set cyclic buffer default sample size
 	lab[freqTune].stat = freqTunePar.isFlg;						// freq tune startup status, flag set from options
-	lab[aBand].stat = aBandPar.isFlg;								// autoband status
+	lab[aBand].stat = aBandPar.isFlg;							// autoband status
 
 	if (!(bool)getFreq())										// check if civ not working -
 		isCivEnable = false;									// disable civMode, display basic mode
@@ -167,6 +167,8 @@ void setup()
 	heartBeatTimer.reset();										// heartbeat reset
 	dimTimer.reset();
 
+
+
 	// draw screen etc
 	initDisplay();
 }
@@ -178,7 +180,7 @@ void setup()
 void loop()
 {
 	int currBand;
-	float sRef = 0, currFreq;
+	float currFreq;
 
 	//digitalWrite(TOGGLE_PIN, !digitalRead(TOGGLE_PIN));
 
@@ -203,11 +205,13 @@ void loop()
 		// display band Mtrs
 		currBand = getBand(currFreq);							// -1(no band) or 0(160m) to 11 (4m)
 		if (currBand >= 0)
+		{
 			displayValue(band, hfBand[currBand].mtrs);			// display band metres
+			setRef(currBand);									// set spectrum ref
+		}
 
 		// display spectrum ref
-		sRef = setRef(currBand);
-		displayValue(ref, sRef);								// display Ref
+		displayValue(sRef, getRef());							// display Ref
 
 		// get tuner status
 		tunerStatus();
@@ -258,7 +262,7 @@ void initDisplay(void)
 	for (int i = 0; i < NUM_FRAMES; i++)
 	{
 		displayLabel(i);
-		val[i].isUpdate = true;							// force redisplay
+		val[i].isUpdate = true;								// force redisplay
 	}
 
 	// set measurement samples Reg size (averaging)

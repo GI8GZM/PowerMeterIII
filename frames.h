@@ -29,7 +29,7 @@ aBand = 12,				// aqutoBand button frame
 civ = 13,				// civ frame
 tuner = 14,				// tuner
 band = 15,				// band Mtrs
-ref = 16,				// spectrum Ref
+sRef = 16,				// spectrum Ref
 txPwr = 17,				// % Tx power
 freq = 18,				// freq Mhz
 
@@ -261,7 +261,7 @@ struct freqband {
 	float ft8Freq;						// FT8 freq for autoband change
 	float bandStart;					// band start freq
 	float bandEnd;						// band end freq
-	float ref;							// spectrum reference
+	float sRef;							// spectrum reference
 	bool isTtune;						// enable tuner flag for this band
 	bool isABand;						// enable autoband flag
 };
@@ -299,7 +299,7 @@ optBox		tb[30];									// tb[] is touch area co-ord
 /* strucure for Options - hfBands  (12 locations 3x4) */
 struct eeProm0
 {
-	float	ref;									// band radio spectrum ref
+	float	sRef;									// band radio spectrum ref
 	bool	isTtune;								// tuner enable flag
 	bool	isABand;								// autoband enable falg
 };
@@ -308,7 +308,7 @@ eeProm0		hfProm[NUM_BANDS];						 // hf bands info
 /*----------eeProm strucure for Variable Parameters------------------------------*/
 struct param										// param structure definition
 {
-	int		val;									// varaibles value
+	int		val;									// variables value
 	bool	isFlg;									// variable flag
 	int		eeAddr;									// eeProm address
 };

@@ -150,8 +150,8 @@ void touchActions(int n, int tStat)				// touch actions for frame i, touch statu
 		txPwrButton(tStat);
 		break;
 
-	case ref:									// radio spectrum reference level
-		refButton(tStat);
+	case sRef:									// radio spectrum reference level
+		sRefButton(tStat);
 		break;
 
 	default:									// default - do nothin

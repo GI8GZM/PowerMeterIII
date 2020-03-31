@@ -165,7 +165,7 @@ void bandButton(int tStat)
 		{									// dispaly frequency
 			eraseFrame(band);
 			eraseFrame(txPwr);
-			eraseFrame(ref);
+			eraseFrame(sRef);
 			restoreFrame(freq);
 		}
 	}

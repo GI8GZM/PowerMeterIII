@@ -28,7 +28,7 @@ void freqDiffTune(float fCurr)
 		lab[tuner].stat = true;
 		displayValue(freq, fCurr);
 		displayValue(band, hfBand[currBand].mtrs);
-		displayValue(ref, hfBand[currBand].ref);
+		displayValue(sRef, hfBand[currBand].sRef);
 		val[band].isUpdate = true;
 
 		// check if in band
@@ -172,7 +172,7 @@ int getTunerStat()
 
 	civWrite(civReadTuner);				// request read frequency from radio
 	n = civRead(inBuff);
-	if (inBuff[2] == CIVADDR && inBuff[n - 1] == 0xFD)	// check format of serial stream
+	if (inBuff[3] == CIVRADIO && inBuff[n - 1] == 0xFD)	// check format of serial stream
 		return inBuff[n-2];				// return tuner status
 	else
 		return -1;

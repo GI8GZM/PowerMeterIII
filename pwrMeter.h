@@ -57,7 +57,8 @@ bool	    isCivEnable = true;				    // 0 = Power meter only, 1 = added CI-V
 #define CIV_READ_DELAY  1						    // CIV read delay to ensure rx buffer fill
 
 /*----------Icom CI-V commands------------------------------*/
-int civPreamble[] =     { 0xFE, 0xFE,  CIVRADIO, CIVADDR };			    // write command preamble
+int civReadPreamble[] = { 0xFE, 0xFE,  CIVADDR, CIVRADIO };			    // read from radio command preamble
+int civWritePreamble[] ={ 0xFE, 0xFE,  CIVRADIO, CIVADDR };			    // write command preamble
 int	civReadFreq[] =     { 0x03, 0xFD };								    // read frequency
 int civWriteFreq[] =    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };	// set frequency
 int civReadTuner[] =    { 0x1C, 0x01, 0xFD };							// read tuner status

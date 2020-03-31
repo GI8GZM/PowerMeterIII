@@ -23,7 +23,7 @@ void initEEPROM(void)
 			eeAddr = EEADDR_BAND + EEINCR * i;
 			EEPROM.get(eeAddr, hfProm[i]);
 
-			hfBand[i].ref = hfProm[i].ref;
+			hfBand[i].sRef = hfProm[i].sRef;
 			hfBand[i].isTtune = hfProm[i].isTtune;
 			hfBand[i].isABand = hfProm[i].isABand;
 		}
@@ -37,7 +37,7 @@ void initEEPROM(void)
 	else {
 		// initialise EEPROM from compiled values
 		for (int i = 0; i < NUM_BANDS; i++) {
-			hfProm[i].ref = hfBand[i].ref;
+			hfProm[i].sRef = hfBand[i].sRef;
 			hfProm[i].isTtune = hfBand[i].isTtune;
 			hfProm[i].isABand = hfBand[i].isABand;
 			putBandEEPROM(i);
