@@ -59,7 +59,7 @@ void screenCal()
 			do												// loop until tStat = touched (!=0)
 			{
 				delay(200);									// might help avoid double touch
-				tStat = touched();							// get touched status
+				tStat = touch();							// get touched status
 				if (tStat == 1) 							// tStatatus: 0 = no touch, 1 = touched, 2 = long touch
 				{
 					p = ts.getPoint();						// get position result
@@ -89,7 +89,7 @@ void screenCal()
 
 		char txt[] = ("Touch to Continue");					// hold for another touch
 		displayScreenText(txt, yPosn + 50);
-		while (!touched());									// wait for touch
+		while (!touch());									// wait for touch
 	} while (tStat != 2);									// loop until long touch
 
 	// exit

@@ -28,26 +28,26 @@ two sets of factors as detection diodes are no linear at low powers.
 
 // Direct power conversion constants
 // forward power constants
-#define	FWD_V_SPLIT_PWR     0.02					 // split voltage, direct pwr conversion
-#define	FWD_LO_MULT_PWR     0.1308					 // LO pwrs = ln(v)*LO_MULT_PWR + LO_ADD_PWR
+#define	FWD_V_SPLIT_PWR     0.02				    // split voltage, direct pwr conversion
+#define	FWD_LO_MULT_PWR     0.1308				    // LO pwrs = ln(v)*LO_MULT_PWR + LO_ADD_PWR
 #define FWD_LO_ADD_PWR      0.9748
 #define	FWD_HI_MULT2_PWR    10.178
 #define FWD_HI_MULT1_PWR    5.7523
-#define FWD_HI_ADD_PWR      0.3202					 // HI pwr = v*v*HI_MULT2_PWR +v*HI_MULT1_PWR + HI_ADD_PWR
+#define FWD_HI_ADD_PWR      0.3202				    // HI pwr = v*v*HI_MULT2_PWR +v*HI_MULT1_PWR + HI_ADD_PWR
 // reflected power constants
-#define	REF_V_SPLIT_PWR     0.02					 // split voltage, direct pwr conversion
-#define	REF_LO_MULT_PWR     0.1308					 // LO pwrs = ln(v)*LO_MULT_PWR + LO_ADD_PWR
+#define	REF_V_SPLIT_PWR     0.02				    // split voltage, direct pwr conversion
+#define	REF_LO_MULT_PWR     0.1308				    // LO pwrs = ln(v)*LO_MULT_PWR + LO_ADD_PWR
 #define REF_LO_ADD_PWR      0.9748
 #define	REF_HI_MULT2_PWR    10.178
 #define REF_HI_MULT1_PWR    5.7523
-#define REF_HI_ADD_PWR      0.3202					 // HI pwr = v*v*HI_MULT2_PWR +v*HI_MULT1_PWR + HI_ADD_PWR
+#define REF_HI_ADD_PWR      0.3202					// HI pwr = v*v*HI_MULT2_PWR +v*HI_MULT1_PWR + HI_ADD_PWR
 
 #define PEP_DECAY       0.70						// decay factror for pep
 
  /*---------------------------Serial ports -------------------*/
-#define		civSerial   Serial1					    // uses serial1 rx/tx pins 0,1
-bool	    isCivEnable = true;				    // 0 = Power meter only, 1 = added CI-V
-#define		btSerial    Serial3					    // bluetooth serial3 - pins 7,8
+#define	civSerial Serial1					        // uses serial1 rx/tx pins 0,1
+bool	isCivEnable = true;				            // 0 = Power meter only, 1 = added CI-V
+#define	btSerial Serial3					        // bluetooth serial3 - pins 7,8
 
 /*----------Icom CI-V Constants------------------------------*/
 #define CIVADDR         0xE2			        	// this controller address
@@ -57,19 +57,19 @@ bool	    isCivEnable = true;				    // 0 = Power meter only, 1 = added CI-V
 #define CIV_READ_DELAY  1						    // CIV read delay to ensure rx buffer fill
 
 /*----------Icom CI-V commands------------------------------*/
-int civReadPreamble[] = { 0xFE, 0xFE,  CIVADDR, CIVRADIO };			    // read from radio command preamble
-int civWritePreamble[] ={ 0xFE, 0xFE,  CIVRADIO, CIVADDR };			    // write command preamble
-int	civReadFreq[] =     { 0x03, 0xFD };								    // read frequency
-int civWriteFreq[] =    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };	// set frequency
-int civReadTuner[] =    { 0x1C, 0x01, 0xFD };							// read tuner status
-int civWriteTuner[] =   { 0x1C, 0x01, 0x02, 0xFD };					    // radio tuner activate
-int civReadRef[] =      { 0x27, 0x19, 0x00, 0xFD };						// read spectrum Reference
-int civWriteRef[] =     { 0x27, 0x19, 0x00,0x00,0x00,0x00,0xFD };		// spectrum Reference
-int	civReadTxPwr[] =    { 0x14, 0x0A, 0xFD };						    // read RF Power setting
-int	civWriteTxPwr[] =   { 0x14, 0x0A, 0x00, 0x00, 0xFD };			    // set RF Power
+char    civReadPreamble[] = { 0xFE, 0xFE,  CIVADDR, CIVRADIO };			    // read from radio command preamble
+char    civWritePreamble[] ={ 0xFE, 0xFE,  CIVRADIO, CIVADDR };			    // write command preamble
+char    civReadFreq[] =     { 0x03, 0xFD };								    // read frequency
+char    civWriteFreq[] =    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };	// set frequency
+char    civReadTuner[] =    { 0x1C, 0x01, 0xFD };							// read tuner status
+char    civWriteTuner[] =   { 0x1C, 0x01, 0x02, 0xFD };					    // radio tuner activate
+char    civReadRef[] =      { 0x27, 0x19, 0x00, 0xFD };						// read spectrum Reference
+char    civWriteRef[] =     { 0x27, 0x19, 0x00,0x00,0x00,0x00,0xFD };		// spectrum Reference
+char	civReadTxPwr[] =    { 0x14, 0x0A, 0xFD };						    // read RF Power setting
+char	civWriteTxPwr[] =   { 0x14, 0x0A, 0x00, 0x00, 0xFD };			    // set RF Power
 
 /*----------ILI9341 TFT display (320x240)-------------------------*/
-#define     ROTATION 1									// rotation for tft and touchscreen
+#define     ROTATION 1								// rotation for tft and touchscreen
 #define		TFT_DC 9
 #define		TFT_CS 10								// TFT CS pin
 ILI9341_t3	tft = ILI9341_t3(TFT_CS, TFT_DC);		// define tft device

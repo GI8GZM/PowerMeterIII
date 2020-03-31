@@ -15,32 +15,6 @@ txPwr
 
 */
 
-/*--------------------------------------------------------------------------------------------------
-optionsButton() - toggles between calibrate mode and ci-v mode
-tStat = 0 (don't toggle), 1 (short touch), 2 (long Touch)
-*/
-void optionsButton(int tStat)
-{
-	if (tStat == 1)
-		setSamples();									// set samples numbers
-
-	if (tStat == 2)
-	{
-		lab[civ].stat = !lab[civ].stat;					// toggle calibrate/normal mode  = !lab[civ].stat}
-
-		if (!lab[civ].stat)									// true is normal civmode
-		{
-			samplesAvg = samplesCalPar.val;
-			calMode();										// go to calibrate mode
-		}
-		else
-		{
-			samplesAvg = samplesDefPar.val;
-			initDisplay();									// set normal mode
-		}
-	}
-}
-
 /*------------------------------ touchNettPwr() ---------------------------------
 short touch (1)- toggles  number of samples used for averaging
 long touch (2) - switches to dBm display. any touch goes back to nettPwr
@@ -82,6 +56,16 @@ void nettPwrButton(int tStat)							// passed touch status
 	}
 }
 
+/*------------------------ dBmButton()------------------------------------
+dBm displayed by nettPower long touch
+short touch restores to nettPwr (Watts) display
+*/
+void dbmButton(int tStat)
+{
+	eraseFrame(dBm);									// erases and disables  nettPwr frame
+	fr[nettPwr].bg = BG_COLOUR;
+	restoreFrame(nettPwr);
+}
 
 /*-----------------------------peakPwrButton() --------------------------------------------------
 short touch(1) - swap from Peak average power to PEP
@@ -105,18 +89,6 @@ void peakPwrButton(int tStat)							// 0 = program call. sets display.  1 - shor
 		CPU_RESTART;
 }
 
-
-/*------------------------ dBmButton()------------------------------------
-dBm displayed by nettPower long touch
-short touch restores to nettPwr (Watts) display
-*/
-void dBmButton(int tStat)
-{
-	eraseFrame(dBm);									// erases and disables  nettPwr frame
-	fr[nettPwr].bg = BG_COLOUR;
-	restoreFrame(nettPwr);
-}
-
 /*---------------------- swrButton ------------------------------
 short touch - swap from one decimal to two decmal places
 long touch - initialise display
@@ -125,7 +97,7 @@ void swrButton(int tStat)
 {
 	if (tStat == 2)
 	{
-		isCivEnable = !isCivEnable;					// swap between civ mode and basic mode
+		isCivEnable = !isCivEnable;						// swap between civ mode and basic mode
 		initDisplay();									// initialise screen, civMode frames or basicMode frames
 	}
 	else
@@ -145,24 +117,24 @@ void swrButton(int tStat)
 	displayValue(swr, 1.0);
 }
 
-/*---------------------------- bandButton() -----------------------------------
+/*---------------------------- autoBandButton() -----------------------------------
 short touch - swap frequency (Mhz) band(metres) & txPwr/ref
 long touch - null
 */
-void bandButton(int tStat)
+void autoBandButton(int tStat)
 {
-	if (tStat == 2)							// long touch
+	if (tStat == 2)										// long touch
 		return;
-	else									// short touch	
+	else												// short touch	
 	{
 		if (fr[freq].isTouch)
-		{									// if enabled, band active
+		{												// if enabled, band active
 			eraseFrame(freq);
 			restoreFrame(band);
 			restoreFrame(txPwr);
 		}
 		else
-		{									// dispaly frequency
+		{												// dispaly frequency
 			eraseFrame(band);
 			eraseFrame(txPwr);
 			eraseFrame(sRef);
@@ -171,3 +143,28 @@ void bandButton(int tStat)
 	}
 }
 
+/*------------------------------ samplesButton --------------------------------------------------------------------
+toggles between calibrate mode and ci-v mode
+tStat = 0 (don't toggle), 1 (short touch), 2 (long Touch)
+*/
+void samplesButton(int tStat)
+{
+	if (tStat == 1)
+		setSamples();									// set samples numbers
+
+	if (tStat == 2)
+	{
+		lab[civ].stat = !lab[civ].stat;					// toggle calibrate/normal mode  = !lab[civ].stat}
+
+		if (!lab[civ].stat)								// true is normal civmode
+		{
+			samplesAvg = samplesCalPar.val;
+			calMode();									// go to calibrate mode
+		}
+		else
+		{
+			samplesAvg = samplesDefPar.val;
+			initDisplay();								// set normal mode
+		}
+	}
+}

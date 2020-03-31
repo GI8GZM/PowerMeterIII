@@ -290,7 +290,7 @@ int chkParamOpts(int n)
 
 	do
 	{
-		tStatus = touched();					// check for touch
+		tStatus = touch();					// check for touch
 		if (!tStatus) 							// tStatus: 0 = no touch, 1 = touched, 2 = long touch
 			return -1;							// false/no touch
 
@@ -362,7 +362,7 @@ int setOptFlg(int posn, const char* txt, param par, int i)
 	return i;
 }
 
-/*---------drawPlusMinusOpts()------------------------------------
+/*-----------------------drawPlusMinusOpts()------------------------------------
 args: x, position, ti is touch index
 draws +, - boxes using symbol font.  Reversed +/- automatic
 adds offsets to allow for circle position

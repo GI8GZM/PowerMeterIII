@@ -159,7 +159,7 @@ void measure()
 			if (isDim)
 				resetDimmer();							// reset dimmer
 			else
-				touchChk(NUM_FRAMES);
+				touchChk();
 		}
 		if (nPwr >= PWR_THRESHOLD)
 			resetDimmer();

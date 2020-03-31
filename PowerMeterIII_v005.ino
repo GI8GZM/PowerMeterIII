@@ -199,7 +199,7 @@ void loop()
 	if (isCivEnable)
 	{
 		// get and display frequency
-		currFreq = getFreq();
+		currFreq = getFreq();									// get and dispaly current frequency
 		displayValue(freq, currFreq);
 
 		// display band Mtrs
@@ -226,13 +226,13 @@ void loop()
 		displayTxPwr();
 	}
 
-	// reset dimmer - check if screen has been touched
+	// check if screen has been touched
 	if (ts.tirqTouched())
 	{
 		if (isDim)
 			resetDimmer();										// reset dimmer
 		else
-			touchChk(NUM_FRAMES);
+			touchChk();								// check for touch / button press
 	}
 }
 

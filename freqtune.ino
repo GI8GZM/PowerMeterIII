@@ -21,9 +21,9 @@ void freqDiffTune(float fCurr)
 		return;
 
 	//change in radio freq greater than set difference?  Activate tuner
-	fDiff = abs(fCurr - val[tuner].prevValue) * 1000;  // kHz
+	fDiff = abs(fCurr - val[tuner].prevValue) * 1000;	// kHz
 	displayValue(freqTune, constrain(freqTunePar.val - fDiff, 0, 9999));
-	if (fDiff >= freqTunePar.val)
+	if (fDiff >= freqTunePar.val)						// freq change > limit
 	{
 		lab[tuner].stat = true;
 		displayValue(freq, fCurr);
@@ -168,7 +168,7 @@ Returns: 0 = off, 1 = on, 2 = tuning
 int getTunerStat()
 {
 	int n;
-	int inBuff[12];						// civ frequency inBuff buffer
+	char inBuff[12];						// civ frequency inBuff buffer
 
 	civWrite(civReadTuner);				// request read frequency from radio
 	n = civRead(inBuff);

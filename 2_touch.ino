@@ -10,11 +10,56 @@
    Interrupt driven - only get here if screen touched
 */
 
+/*-------------------------------- touchChk() -----------------------------------------------------------
+checks for touch on enabled frames
+arg: num of frames
+*/
+void touchChk()
+{
+	int x = 0, y = 0;							// local variables
+	TS_Point p;									// touch screen result structure
+	int tStatus;								// 0= not touched, 1 = shorttouch, 2 = longtouch,
+	bool isTouch = false;
+
+	//tStatus = 1;								// default short touch. 0= not touched, 1 = shorttouch, 2 = longtouch
+
+	do
+	{
+		tStatus = touch();						// check for touch
+		if (!tStatus) 							// tStatus: 0 = no touch, 1 = touched, 2 = long touch
+			return;
+		p = ts.getPoint();						// get position result
+
+		// map(value, fromLow, fromHigh, toLow, toHigh). defined in touchOptions.h
+		x = map(p.x, xMapL, xMapR, 0, 320);
+		y = map(p.y, yMapT, yMapB, 0, 240);
+
+		// get frame that was touched
+		for (int i = 0; i <= NUM_FRAMES; i++)				// for all frames
+		{
+			if (x > fr[i].x && x < (fr[i].x + fr[i].w)		// x,y between frame width and height
+				&& y > fr[i].y && (y < fr[i].y + fr[i].h))
+			{
+				// touch enabled frame? break on first occurance for similar posn frames
+				if (fr[i].isTouch)
+				{
+					touchActions(i, tStatus);
+					isTouch = true;
+					break;
+				}
+			}
+		}
+	} while (!isTouch);
+
+	// empty touch buffer for excess long touch
+	while (ts.touched());
+}
+
 /*------------------------------- touched() ------------------------------------------------------------
 check for screen touch
 returns 0 = no touch, 1 = short touch, 2 = long touch
 */
-int touched()
+int touch()
 {
 	int status = 0;
 
@@ -36,59 +81,16 @@ int touched()
 	return status;
 }
 
-/*-------------------------------- touchChk() -----------------------------------------------------------
-checks for touch on enabled frames
-arg: num fo frames
-*/
-void touchChk(int i)
-{
-	int x = 0, y = 0;							// local variables
-	TS_Point p;									// touch screen result structure
-	int tStatus;								// 0= not touched, 1 = shorttouch, 2 = longtouch,
-	bool isTouch = false;
-
-	tStatus = 1;								// default short touch. 0= not touched, 1 = shorttouch, 2 = longtouch
-
-	do
-	{
-		tStatus = touched();					// check for touch
-		if (!tStatus) 							// tStatus: 0 = no touch, 1 = touched, 2 = long touch
-			return;
-		p = ts.getPoint();						// get position result
-
-		// map(value, fromLow, fromHigh, toLow, toHigh). defined in touchOptions.h
-		x = map(p.x, xMapL, xMapR, 0, 320);
-		y = map(p.y, yMapT, yMapB, 0, 240);
-
-		// get frame that was touched
-		for (i = 0; i <= i; i++)				// for all frames
-		{
-			if (x > fr[i].x && x < (fr[i].x + fr[i].w)		// x,y between frame width and height
-				&& y > fr[i].y && (y < fr[i].y + fr[i].h))
-			{
-				// touch enabled frame? break on first occurance for similar posn frames
-				if (fr[i].isTouch)
-				{
-					touchActions(i, tStatus);
-					isTouch = true;
-					break;
-				}
-			}
-		}
-	} while (!isTouch);
-
-	// empty touch buffer for excess long touch
-	while (ts.touched());
-}
 
 /*--------------------------------- touchActions() --------------------------------------------------------------
 actions to take when frame is touched
  arg: i = frame position, tStat = 0 (program call), 1 = normal/short touch, 2 = long touch
 */
-void touchActions(int n, int tStat)				// touch actions for frame i, touch status
+void touchActions(int button, int tStat)				// touch actions for frame i, touch status
 {
+	const int LONGTOUCH = 2;
 	// code for each detected frame
-	switch (n)
+	switch (button)
 	{
 	case nettPwr:								// frame 0
 		nettPwrButton(tStat);
@@ -99,7 +101,7 @@ void touchActions(int n, int tStat)				// touch actions for frame i, touch statu
 		break;
 
 	case dBm:									// switch from power to dBm
-		dBmButton(tStat);
+		dbmButton(tStat);
 		break;
 
 	case swr:
@@ -119,12 +121,14 @@ void touchActions(int n, int tStat)				// touch actions for frame i, touch statu
 		break;
 
 	case freqTune:								// freqTune button
-		if (tStat == 2) tunerBandOpts();		// long press
-		else freqTuneButton(tStat);
+		if (tStat == LONGTOUCH)
+			tunerBandOpts();		// long press
+		else
+			freqTuneButton(tStat);
 		break;
 
 	case aBand:									// auto band button
-		if (tStat == 2)
+		if (tStat == LONGTOUCH)
 			tunerBandOpts();					// long press
 		else
 			aBandButton(tStat);					// short press
@@ -132,7 +136,7 @@ void touchActions(int n, int tStat)				// touch actions for frame i, touch statu
 
 	case options:								// calibrate mode button
 		if (tStat)
-			optionsButton(tStat);
+			samplesButton(tStat);
 		break;
 
 	case tuner:									// activate the radio tuner
@@ -143,7 +147,7 @@ void touchActions(int n, int tStat)				// touch actions for frame i, touch statu
 
 	case freq:									// display frequency (MHz) or band (mtrs)
 	case band:
-		bandButton(tStat);
+		autoBandButton(tStat);
 		break;
 
 	case txPwr:									// txPwr active, so disable it and enable ref

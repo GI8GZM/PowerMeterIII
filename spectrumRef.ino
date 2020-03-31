@@ -48,7 +48,7 @@ float getRef()
 	int n;												// chars read into buffer
 	int u = 0, d = 0;									// units & decimals
 	float r;											// spectrum ref
-	int inBuff[12];										// civ frequency inBuff buffer
+	char inBuff[12];										// civ frequency inBuff buffer
 
 	n = civWrite(civReadRef);							// request read frequency from radio
 	n = civRead(inBuff);								// buffer, printflg

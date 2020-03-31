@@ -26,7 +26,7 @@ float getFreq()
 {
 	int n;									// chars read into budder
 	float f;
-	int inBuff[12];							// civ frequency inBuff buffer
+	char inBuff[12];							// civ frequency inBuff buffer
 
 	n = civWrite(civReadFreq);				// request read frequency from radio
 	if (n == 0)								// timed out
@@ -50,7 +50,7 @@ returns: hfband band number
 int getBand(float freq)
 {
 	int cBand = -1;							// local band number
-	static int pBand;
+	static int prevBand;
 	int isFlg = false;
 
 	// get band   -1 = no band, 0=160mtrs, 1=80mtrs, etc.
@@ -64,7 +64,7 @@ int getBand(float freq)
 		}
 	}
 
-	if (cBand == pBand)						// compare to previousBand
+	if (cBand == prevBand)						// compare to previousBand
 		return cBand;						// return if no change
 
 	// update label with band txt
@@ -82,7 +82,7 @@ int getBand(float freq)
 	}
 
 	// set global bandCurr & return
-	pBand = cBand;							// save to previousBand
+	prevBand = cBand;							// save to previousBand
 	return cBand;
 }
 
@@ -100,7 +100,7 @@ Returns: number of characters received or 0 if fail
 Global: inBuff
 Calls:
 */
-int civRead(int* buff)						// read into buff, serial print if flg set
+int civRead(char* buff)						// read into buff, serial print if flg set
 //int civRead(char* buff)					// read into buff, serial print if flg set
 {
 	int n = 0;
@@ -152,7 +152,7 @@ Global: inBuff
 Calls:
 */
 //int civWrite(const char* buff)
-int civWrite(int* buff)
+int civWrite(char* buff)
 {
 	int n = 0;
 	char inChar = '\0';						// incoming, read char
@@ -215,7 +215,7 @@ int civWrite(int* buff)
  function to decode BCD frequency data.
   Called By: civreadFreq()
 */
-float decodeFreq(int* buff)
+float decodeFreq(char* buff)
 {
 	//unsigned long m, k1, k2, h;
 	long mult = 1000000;						// multiplier =  one million
@@ -234,7 +234,7 @@ float decodeFreq(int* buff)
 function to encode float freq to CI-V format.
 buff[4] - buff[8]	Called by: initAutoBand(), autoBand()
 */
-void encodeFreq(int* buff, float freq)			// buffer, value   set Frequency
+void encodeFreq(char* buff, float freq)			// buffer, value   set Frequency
 {
 	long mult = 1000000;						// multiplier =  one million
 	long  fl = freq * mult;						// convert decimal MHz freq to Hz
@@ -254,7 +254,7 @@ void encodeFreq(int* buff, float freq)			// buffer, value   set Frequency
 /*---------------------------------- civPrintBuffer() --------------------------------
 diagnostic - prints contents of civ buffer
 */
-void civBuffPrint(int* buff)
+void civBuffPrint(char* buff)
 {
 	int n = 0;
 	while (buff[n] != 0xFD)

@@ -71,7 +71,7 @@ int getTxPwr()
 {
 	int n;												// chars read into budder
 	unsigned int h = 0, u = 0;							// hundreds, units
-	int inBuff[12];										// civ frequency inBuff buffer
+	char inBuff[12];										// civ frequency inBuff buffer
 	int pwr = 0;
 
 	civWrite(civReadTxPwr);								// request read power setting from radio
