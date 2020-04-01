@@ -116,7 +116,7 @@
     <None Include="freqtune.ino">
       <FileType>CppCode</FileType>
     </None>
-    <None Include="6_autoband.ino">
+    <None Include="autoband.ino">
       <FileType>CppCode</FileType>
     </None>
     <None Include="7_options.ino">
