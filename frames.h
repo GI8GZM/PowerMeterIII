@@ -56,9 +56,11 @@ struct frame {
 	bool isEnable;				// enable frame & CONTENTS
 };
 
-frame fr[NUM_FRAMES];
+frame fr[NUM_FRAMES];                   // program variables.  Copy either civFrame or Basic Frame
+
+
 //------------------------------------  civ (default) frame layout ------------------------------
-frame civFrame[] = {
+frame civFrame[NUM_FRAMES] = {
   { 5, 10,		100, 75,	BG_COLOUR,	true,	true,	true},		// 0-nettPwr (default - nettPower)
   { 110, 10,	100, 65,	BG_COLOUR,	true,	true,	true},		// 1-peakPwr
   { 215, 10,	100, 65,	BG_COLOUR,	true,	true,	true},		// 2-swr
@@ -99,7 +101,7 @@ frame civFrame[] = {
 };
 
 // ------------------------------  basic (non civ) frame layout -------------------------------
-frame basicFrame[] = {
+frame basicFrame[NUM_FRAMES] = {
   { 5, 10,		100, 100,	BG_COLOUR,	true,	true,	true},		// 0-nettPwr (default - nettPower)
   { 110, 10,	100, 65,	BG_COLOUR,	true,	true,	true},		// 1-peakPwr
   { 215, 10,	100, 65,	BG_COLOUR,	true,	true,	true},		// 2-swr

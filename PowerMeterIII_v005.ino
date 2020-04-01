@@ -199,7 +199,7 @@ void loop()
 	if (isCivEnable)
 	{
 		// get and display frequency
-		currFreq = getFreq();									// get and dispaly current frequency
+		currFreq = getFreq();									// get and display current frequency
 		displayValue(freq, currFreq);
 
 		// display band Mtrs
@@ -210,9 +210,6 @@ void loop()
 			setRef(currBand);									// set spectrum ref
 		}
 
-		// display spectrum ref
-		displayValue(sRef, getRef());							// display Ref
-
 		// get tuner status
 		tunerStatus();
 
@@ -222,8 +219,11 @@ void loop()
 		// run FT8 auto band change
 		autoBand(currFreq);
 
-		// display %TX RF Power
-		displayTxPwr();
+		// display %TX RF Power	else display spectrum ref			
+		if (fr[txPwr].isEnable)									// only if enabled
+			displayTxPwr();
+		else																								
+			displayValue(sRef, getRef());						//if (fr[sRef].isEnable), save on serial comms
 	}
 
 	// check if screen has been touched
@@ -344,7 +344,7 @@ void heartBeat()
 }
 
 /*--------------------------- copyFrame() ----------------------------------------
-diagnostic -  copies default frame setting (frame.h) to  frame pointer
+copies default frame setting (frame.h) to  frame pointer
 --------------------------------------------------------------------------------*/
 void copyFrame(frame* fPtr)
 {

@@ -26,7 +26,7 @@ float getFreq()
 {
 	int n;									// chars read into budder
 	float f;
-	char inBuff[12];							// civ frequency inBuff buffer
+	char inBuff[12];						// civ frequency inBuff buffer
 
 	n = civWrite(civReadFreq);				// request read frequency from radio
 	if (n == 0)								// timed out

@@ -14,7 +14,7 @@ two sets of factors as detection diodes are no linear at low powers.
 
 */
 #define PWR_THRESHOLD   1.0	    				    // power on threshold watts
-#define	FV_ZEROADJ      0.0000 				        // ADC zero offset voltage
+#define	FV_ZEROADJ      -0.0030 				        // ADC zero offset voltage
 #define	RV_ZEROADJ      0.0000				        // ADC zero offset voltage
 
 ////Cal: 02 Mar 2020
@@ -83,7 +83,7 @@ bool		isDim = false;							// dim flag, false = no dim
 #define		TS_IRQ 2								// touch interrupt pin
 #define		TS_CS  6								// Touch CS. *** do NOT use pin 8...  required for Serial3
 XPT2046_Touchscreen ts(TS_CS, TS_IRQ);				// allows touch screen interrupts
-#define     LONGTIME 500					        // long touch time (mSecs)
+#define     LONG_TOUCH_TIME 500					        // long touch time (mSecs)
 #define		TOUCH_REVERSED true						// true = reversed
 #if			TOUCH_REVERSED
 int xMapL = 3850, xMapR = 320;

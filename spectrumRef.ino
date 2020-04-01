@@ -32,7 +32,6 @@ void sRefButton(int tStat)
 
 		// blink frame to show write
 		eraseFrame(sRef);
-		// setRef(band);
 		delay(100);										// 0.1 sec blink to show memory write
 		restoreFrame(sRef);
 		displayValue(sRef, r);							// update reffarme with value
@@ -45,10 +44,11 @@ Returns float (ref)
 */
 float getRef()
 {
+
 	int n;												// chars read into buffer
 	int u = 0, d = 0;									// units & decimals
-	float r;											// spectrum ref
-	char inBuff[12];										// civ frequency inBuff buffer
+	float ref = 0.0;											// spectrum ref
+	char inBuff[12];									// civ frequency inBuff buffer
 
 	n = civWrite(civReadRef);							// request read frequency from radio
 	n = civRead(inBuff);								// buffer, printflg
@@ -57,11 +57,11 @@ float getRef()
 		u = getBCD(inBuff[n - 4]);						// convert from BCD
 		d = getBCD(inBuff[n - 3]);
 	}
-	r = u + (float)d / 100.0;							// format
+	ref = u + (float)d / 100.0;						// format
 	if (inBuff[n - 2])
-		r = r * -1;									// if negative
+		ref = -ref;									// change sign if negative
 
-	return r;
+	return ref;
 }
 
 /*------------------------- setRef() ---------------------------
@@ -72,37 +72,37 @@ returns: reference (float)
 float setRef(int band)
 {
 	static int prevBand;
-	float r;											// spectrum ref
+	float sRef;											// spectrum ref
 
 	if (band != prevBand && band != -1)								// band change?
 	{
-		r = hfBand[band].sRef;							// get ref
-		putRef(r);										// send spec ref to radio
+		sRef = hfBand[band].sRef;							// get ref
+		putRef(sRef);										// send spec ref to radio
 		prevBand = band;								// save current band
 	}
-	r = getRef();										// read ref from radio
-	return r;
+	sRef = getRef();										// read ref from radio
+	return sRef;
 }
 
 /*------------------------------ putRef() ---------------------------------
 set radio spectrum reference
 ref - spectrum reference to set
 */
-void putRef(float r)
+void putRef(float sRef)
 {
 	// civWriteRef[] = 7 bytes, excluding preamble
 	int u, d;											// units & decimals
 
 	// convert to BVD format for CI-V
-	if (r < 0)										// check if float negative
+	if (sRef < 0)										// check if float negative
 		civWriteRef[5] = 0x01;							// negative
 	else
 		civWriteRef[5] = 0x00;							// positive
 
 	// convert float to BCD
-	r = abs(r) * 10;								// allow for 1 decimal
-	u = (int)r / 10;									// units
-	d = (int)r % 10;									// decimal
+	sRef = abs(sRef) * 10;								// allow for 1 decimal
+	u = (int)sRef / 10;									// units
+	d = (int)sRef % 10;									// decimal
 	civWriteRef[3] = putBCD(u);
 	civWriteRef[4] = putBCD(d);
 
