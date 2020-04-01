@@ -14,17 +14,16 @@ two sets of factors as detection diodes are no linear at low powers.
 
 */
 #define PWR_THRESHOLD   1.0	    				    // power on threshold watts
-#define	VF_ZEROADJ      0.000					    // ADC zero offset voltage
-#define	VR_ZEROADJ      0.0016  				    // ADC zero offset voltage
-#define	V_ZEROADJ       0.000  					    // ADC zero offset voltage
+#define	FV_ZEROADJ      0.0000 				        // ADC zero offset voltage
+#define	RV_ZEROADJ      0.0000				        // ADC zero offset voltage
 
-//Cal: 02 Mar 2020
-// RMS voltage calculation
-#define	LO_MULT         1.0907
-#define LO_ADD          8.506			            // LO vrms = ln(v)*LO_MULT + LO_ADD
-#define	V_SPLIT         0.05			            // split voltage
-#define	HI_MULT         20.702
-#define HI_ADD          4.2862			            // HI vrms = v*HI_MULT + HI_ADD
+////Cal: 02 Mar 2020
+//// RMS voltage calculation
+//#define	LO_MULT         1.0907
+//#define LO_ADD          8.506			            // LO vrms = ln(v)*LO_MULT + LO_ADD
+//#define	V_SPLIT         0.05			            // split voltage
+//#define	HI_MULT         20.702
+//#define HI_ADD          4.2862			            // HI vrms = v*HI_MULT + HI_ADD
 
 // Direct power conversion constants
 // forward power constants
@@ -107,7 +106,7 @@ int yMapT = 300, yMapB = 3800;
 ADC* adc = new ADC();							    // adc object
 ADC::Sync_result result;						    // ADC result structure
 const int    MAXBUF = 1000;						    // maximum averaging buffer/samples size
-int	         samplesAvg;						    // default cyclic buffer samples
+int	         samplesAvg;						    // number of cyclic buffer samples
 volatile int sample;							    // ADC cyclic buffer sample
 volatile long buf0Tot, buf1Tot;					    // cyclic buffer totals
 volatile unsigned int buf0Pk, buf1Pk;			    // cyclic buffer peak values

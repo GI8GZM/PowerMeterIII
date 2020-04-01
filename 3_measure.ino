@@ -14,7 +14,7 @@
 void measure()
 {
 	unsigned long cr0, cr1, cr0Pk, cr1Pk;
-	float vf, vr, vfp, vrp;
+	float fVolts, rVolts, fPkVolts, rPkVolts;
 	float fPwr, rPwr, nPwr,								// calculated forward, reflected, nett power
 		fPkPwr, rPkPwr, pep,							// pep powers
 		dbm = 0,										// dBm
@@ -27,6 +27,9 @@ void measure()
 	{
 		// r0, r1 etc are measured independantly by timer interrupt function getADC()
 		// come here to check results
+		initADCSamples();								// check if cyclic buffers need initialised (samplesAvg change)
+
+		// get ACD reults
 		noInterrupts();									// stop interrupts while copying data
 		cr1 = buf1Tot;									// buffer totals
 		cr0 = buf0Tot;
@@ -36,10 +39,10 @@ void measure()
 
 		// voltage calculations
 		{
-			vf = cr1 * 3.3 / adc->adc0->getMaxValue() / samplesAvg - VF_ZEROADJ;		// fwd volts zero Adjusted
-			vr = cr0 * 3.3 / adc->adc1->getMaxValue() / samplesAvg - VR_ZEROADJ;		// ref volts zero adjusted
-			vfp = cr1Pk * 3.3 / adc->adc0->getMaxValue() - VF_ZEROADJ;	// fwd volts peak
-			vrp = cr0Pk * 3.3 / adc->adc1->getMaxValue() - VR_ZEROADJ;	// ref volts peak
+			fVolts = cr1 * 3.3 / adc->adc0->getMaxValue() / samplesAvg + FV_ZEROADJ;		// fwd volts zero Adjusted
+			rVolts = cr0 * 3.3 / adc->adc1->getMaxValue() / samplesAvg + RV_ZEROADJ;		// ref volts zero adjusted
+			fPkVolts = cr1Pk * 3.3 / adc->adc0->getMaxValue() + FV_ZEROADJ;	// fwd volts peak
+			rPkVolts = cr0Pk * 3.3 / adc->adc1->getMaxValue() + RV_ZEROADJ;	// ref volts peak
 		}
 		//calculate power via rms voltage
 		//fPwr = pwrRmsCalc(vf);
@@ -48,10 +51,10 @@ void measure()
 		//rPkPwr = pwrRmsCalc(vrp);
 
 		//calculate power directly from volts
-		fPwr = pwrCalc(vf, 'F');						//  fwd volts
-		rPwr = pwrCalc(vr, 'R');						//  ref volts
-		fPkPwr = pwrCalc(vfp, 'F');						// peak power, fwd
-		rPkPwr = pwrCalc(vrp, 'R');						// pk pwr, ref
+		fPwr = pwrCalc(fVolts, 'F');					//  fwd volts
+		rPwr = pwrCalc(rVolts, 'R');					//  ref volts
+		fPkPwr = pwrCalc(fPkVolts, 'F');				// peak power, fwd
+		rPkPwr = pwrCalc(rPkVolts, 'R');				// pk pwr, ref
 
 		// nett power
 		nPwr = fPwr - rPwr;								// nett power to antenna
@@ -142,8 +145,8 @@ void measure()
 		displayValue(peakPwr, pkPwr);
 		displayValue(fwdPwr, fPwr);
 		displayValue(refPwr, rPwr);
-		displayValue(fwdVolts, vf);						// display with zero offset
-		displayValue(refVolts, vr);
+		displayValue(fwdVolts, fVolts);						// display with zero offset
+		displayValue(refVolts, rVolts);
 		displayMeter(nettPwrMeter, nPwr, pkPwr);		// display nPwr Meter
 		displayMeter(swrMeter, swrV, 1);				// display if enabled
 
@@ -184,13 +187,16 @@ float pwrCalc(float v, char direction)						//
 	float pwr = 0.0;
 
 	// calculate power. if Flg true, fwd power. if false ref power
-	if (direction == 'f'  || direction == 'F')			
+	if (direction == 'f' || direction == 'F')
 	{
 		if (v < FWD_V_SPLIT_PWR)								// low power below split (non-linear)
 			pwr = log(v) * FWD_LO_MULT_PWR + FWD_LO_ADD_PWR;
 		else
 			pwr = v * v * FWD_HI_MULT2_PWR + v * FWD_HI_MULT1_PWR + FWD_HI_ADD_PWR;		// high power
 	}
+
+	// calculate reflected power using different constants
+	// direction = R
 	else
 	{
 		if (v < REF_V_SPLIT_PWR)								// low power below split (non-linear)
@@ -207,23 +213,23 @@ float pwrCalc(float v, char direction)						//
 
 /*----------------------------------- pwrRmsCalc() ----------------------------------------------------
 alternative power calculation
-calculates Vrms from ADC volts and then power in watts
+calculates Vrms from ADC rms volts and then power in watts
 */
-float pwrRmsCalc(float vRms)
-{
-	float pwr = 0.0;
-
-	// calculate Vrms
-	if (vRms < V_SPLIT)
-		vRms = log(vRms) * LO_MULT + LO_ADD;			// low power below split
-	else
-		vRms = vRms * HI_MULT + HI_ADD;					// high power
-
-	if (vRms < 0 || !isnormal(vRms))					// check for division by zero and < 0
-		vRms = 0.0;
-
-	// calc power in watts
-	pwr = sq(vRms) / 50;
-
-	return pwr;
-}
+//float pwrRmsCalc(float vRms)
+//{
+//	float pwr = 0.0;
+//
+//	// calculate Vrms
+//	if (vRms < V_SPLIT)
+//		vRms = log(vRms) * LO_MULT + LO_ADD;			// low power below split
+//	else
+//		vRms = vRms * HI_MULT + HI_ADD;					// high power
+//
+//	if (vRms < 0 || !isnormal(vRms))					// check for division by zero and < 0
+//		vRms = 0.0;
+//
+//	// calc power in watts
+//	pwr = sq(vRms) / 50;
+//
+//	return pwr;
+//}

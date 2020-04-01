@@ -48,48 +48,59 @@ SAMPLE_INTERVAL = 500usecs (= 2Khz).  Max samples MXBUF = 1000
 void getADC()											// i = current buffer position, 0 to samplesAvg
 {
 	//digitalWriteFast(TOGGLE_PIN, HIGH);
-	unsigned int ar0, ar1;								// ADC results
-	static int prevSamplesAvg;
+	unsigned int ar0, ar1;								// ar1 - forward, ar0 - reflected ADC results
 
-	if (prevSamplesAvg != samplesAvg)					// has samples number changed?
-	{
-		for (int i = 0; i < samplesAvg; i++)			// initialise buffers
-		{
-			buf0[i] = 0;
-			buf1[i] = 0;
-		}
-		buf0Tot = 0;									// rest buffer totals
-		buf1Tot = 0;
-		sample = 0;										// start new buffer
-	}
-
+	// normal start point
 	result = adc->analogSyncRead(A1, A2);				// synced read ADC_0, ADC_1
-	ar0 = (uint16_t)result.result_adc0;					// add to start of ff register [0]
-	ar1 = (uint16_t)result.result_adc1;
+	ar1 = (uint16_t)result.result_adc1;					// forward volts
+	ar0 = (uint16_t)result.result_adc0;					// reflected volts
 
 	// cyclic buffer averaging
-	buf0Tot = buf0Tot - buf0[sample];					// remove oldest from total
-	buf0[sample] = ar0;									// replace with new sample
-	buf0Tot = buf0Tot + buf0[sample];					// add newest to total
-
 	buf1Tot = buf1Tot - buf1[sample];					// remove oldest from total
 	buf1[sample] = ar1;									// record new sample
 	buf1Tot = buf1Tot + buf1[sample];					// add newest to total
 
+	buf0Tot = buf0Tot - buf0[sample];					// remove oldest from total
+	buf0[sample] = ar0;									// replace with new sample
+	buf0Tot = buf0Tot + buf0[sample];					// add newest to total
+
 	// cyclic buffer peak value
-	buf0Pk = 0;											// inialise fwd buffer only
-	for (int j = 0; j < samplesAvg; j++)
-		if (buf0Pk <= buf0[j])							// get peak forward sample
+	buf1Pk = 0;											// inialise fwd buffer only
+	for (int j = 0; j < samplesAvg; j++)				// cycle buffer to find peak fwd
+		if (buf1[j] >= buf1Pk)							// get peak forward sample
 		{
-			buf0Pk = buf0[j];
-			buf1Pk = buf1[j];							// save ref corresponding peak
+			buf1Pk = buf1[j];							// new peak	
+			buf0Pk = buf0[j];							// save ref corresponding peak
 		}
 
-	sample++;
+	sample++;											// increment sample
 	if (sample >= samplesAvg)							// if max buff, back to start
 		sample = 0;
 
+	// digitalWriteFast(TOGGLE_PIN, LOW);
+}
+
+/*-------------------------- initADCSampls --------------------------------
+initialise cycllice buffers if samplesAvg has changed
+*/
+bool initADCSamples()
+{
+	static int prevSamplesAvg;
+	bool isInitd = false;
+
+	if (prevSamplesAvg != samplesAvg)					// has samples number changed?  (samples options)
+	{
+		for (int i = 0; i < samplesAvg; i++)			// initialise buffers
+		{
+			buf1[i] = 0;
+			buf0[i] = 0;
+		}
+		buf1Tot = 0;
+		buf0Tot = 0;									// rest buffer totals
+		sample = 0;										// start new buffer
+		isInitd = true;
+	}
 	prevSamplesAvg = samplesAvg;						// save number of samples
 
-	// digitalWriteFast(TOGGLE_PIN, LOW);
+	return isInitd;										// flase - not initialised, true - initialised
 }
